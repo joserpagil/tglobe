@@ -6,6 +6,8 @@ import vertexShader from './src/shaders/vertex.glsl'
 import fragmentShader from './src/shaders/fragment.glsl'
 import atmosphereVertexShader from './src/shaders/atmosphereVertex.glsl'
 import atmosphereFragmentShader from './src/shaders/atmosphereFragment.glsl'
+import globe from './src/img/globe.jpeg?url'
+console.log(globe)
 
 const canvasContainer = document.
   querySelector('#canvasContainer');
@@ -39,7 +41,7 @@ const sphere = new THREE.Mesh(
     fragmentShader,
     uniforms: {
       globeTexture: {
-        value: new THREE.TextureLoader().load('./src/img/globe.jpeg')
+        value: new THREE.TextureLoader().load(globe)
       }
     }
   })
