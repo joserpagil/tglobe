@@ -7,13 +7,12 @@ import fragmentShader from './src/shaders/fragment.glsl'
 import atmosphereVertexShader from './src/shaders/atmosphereVertex.glsl'
 import atmosphereFragmentShader from './src/shaders/atmosphereFragment.glsl'
 import globe from './src/img/globe.jpeg?url'
-console.log(globe)
 
 const canvasContainer = document.
-  querySelector('#canvasContainer');
+  querySelector('#canvasContainer')
 
 //new scene
-const scene = new THREE.Scene();
+const scene = new THREE.Scene()
 let camera = new THREE.
   PerspectiveCamera(
   75, 
