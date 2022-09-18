@@ -11,6 +11,11 @@ import globe from './src/img/globe.jpeg?url'
 const canvasContainer = document.
   querySelector('#canvasContainer')
 
+canvasContainer.addEventListener('resize', () => {
+  canvasContainer.width = window.innerWidth;
+  canvasContainer.height = window.innerHeight;
+});
+
 //new scene
 const scene = new THREE.Scene()
 let camera = new THREE.
