@@ -2,10 +2,10 @@ import './tailwind.css'
 import * as THREE from 'three'
 import gsap from 'gsap'
 import countries from './countries.json'
-import vertexShader from './shaders/vertex.glsl'
-import fragmentShader from './shaders/fragment.glsl'
-import atmosphereVertexShader from './shaders/atmosphereVertex.glsl'
-import atmosphereFragmentShader from './shaders/atmosphereFragment.glsl'
+import vertexShader from './src/shaders/vertex.glsl'
+import fragmentShader from './src/shaders/fragment.glsl'
+import atmosphereVertexShader from './src/shaders/atmosphereVertex.glsl'
+import atmosphereFragmentShader from './src/shaders/atmosphereFragment.glsl'
 
 const canvasContainer = document.
   querySelector('#canvasContainer');
@@ -39,7 +39,7 @@ const sphere = new THREE.Mesh(
     fragmentShader,
     uniforms: {
       globeTexture: {
-        value: new THREE.TextureLoader().load('./img/globe.jpeg')
+        value: new THREE.TextureLoader().load('./src/img/globe.jpeg')
       }
     }
   })
