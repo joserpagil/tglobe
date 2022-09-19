@@ -28,8 +28,7 @@ const renderer = new THREE.WebGLRenderer(
     antialias: true,
     canvas: document.querySelector('canvas')
 })
-renderer.setSize(canvasContainer.
-  offsetWidth, canvasContainer.offsetHeight)
+renderer.setSize(canvasContainer.offsetWidth, canvasContainer.offsetHeight)
 renderer.setPixelRatio(window.devicePixelRatio)
 
 // create a sphere
@@ -53,8 +52,8 @@ const atmosphere = new THREE.Mesh(
   new THREE.ShaderMaterial({
     vertexShader: atmosphereVertexShader,
     fragmentShader: atmosphereFragmentShader,
-  blending: THREE.AdditiveBlending,
-  side: THREE.BackSide
+    blending: THREE.AdditiveBlending,
+    side: THREE.BackSide
   })
 )
 
@@ -67,20 +66,18 @@ group.add(sphere)
 scene.add(group)
 
 //create stars
-const starGeometry = new THREE.
-  BufferGeometry()
-const starMaterial = new THREE.
-  PointsMaterial ({
+const starGeometry = new THREE.BufferGeometry()
+const starMaterial = new THREE.PointsMaterial ({
   color: 0xffffff
-  })
+})
 
-  const starVertices = []
+const starVertices = []
   for (let i = 0; i < 10000; i++) {
     const x = (Math.random() - 0.5) * 1000
     const y = (Math.random() - 0.5) * 1000
     const z = -Math.random() * 10000
     starVertices.push(x, y, z)
-  }
+}
 
 starGeometry.setAttribute('position', 
   new THREE.Float32BufferAttribute(
@@ -228,13 +225,16 @@ if (innerWidth >= 1280) {
   mouse.y = -((event.clientY - offset)/ innerHeight)
     * 2 + 1
 }
-    gsap.set(popUpEl, {
-    x: event.clientX,
-    y: event.clientY
-  })
+    
+gsap.set(popUpEl, {
+  x: event.clientX,
+  y: event.clientY
+})
+
   if (mouse.down) {
     const deltaX = event.clientX - mouse.xPrev
     const deltaY = event.clientY - mouse.yPrev
+
     group.rotation.offset.x += deltaY * 0.005
     group.rotation.offset.y += deltaX * 0.005
 
@@ -272,39 +272,42 @@ addEventListener('touchmove', (event) => {
   event.clientX = event.touches[0].clientX
   event.clientY = event.touches[0].clientY
 
-const doesIntersect = raycaster.intersectObject(sphere)
+    const doesIntersect = raycaster.intersectObject(sphere)
 
-if (doesIntersect.length > 0) mouse.down = true
+    if (doesIntersect.length > 0) mouse.down = true
 
-if (mouse.down) {
+    if (mouse.down) {
   
-  const offset = canvasContainer.getBoundingClientRect().top
+      const offset = canvasContainer.getBoundingClientRect().top
 
-  mouse.x = (event.clientX / innerWidth)
-    * 2 - 1
-  mouse.y = -((event.clientY - offset)/ innerHeight)
-    * 2 + 1
-    console.log(mouse.y)
+      mouse.x = (event.clientX / innerWidth)
+        * 2 - 1
+      mouse.y = -((event.clientY - offset)/ innerHeight)
+        * 2 + 1
 
-    gsap.set(popUpEl, {
-    x: event.clientX,
-    y: event.clientY
-  })
-    const deltaX = event.clientX - mouse.xPrev
-    const deltaY = event.clientY - mouse.yPrev
-    group.rotation.offset.x += deltaY * 0.005
-    group.rotation.offset.y += deltaX * 0.005
+      gsap.set(popUpEl, {
+        x: event.clientX,
+        y: event.clientY
+      })
 
-    gsap.to(group.rotation, {
-      y: group.rotation.offset.y, 
-      x: group.rotation.offset.x,
-      duration: 2
-    })
-    mouse.xPrev = event.clientX
-    mouse.yPrev = event.clientY
-    event.preventDefault()
-  }
-})
+      event.preventDefault()
+      const deltaX = event.clientX - mouse.xPrev
+      const deltaY = event.clientY - mouse.yPrev
+
+      group.rotation.offset.x += deltaY * 0.005
+      group.rotation.offset.y += deltaX * 0.005
+
+      gsap.to(group.rotation, {
+        y: group.rotation.offset.y, 
+        x: group.rotation.offset.x,
+        duration: 2
+      })
+      mouse.xPrev = event.clientX
+      mouse.yPrev = event.clientY
+    }
+  }, 
+  { passive: false}
+)
 
 addEventListener('touchend', (event) => {
   mouse.down = false
