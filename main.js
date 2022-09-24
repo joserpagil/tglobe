@@ -297,20 +297,20 @@ addEventListener('touchmove', (event) => {
         y: event.clientY
       })
 
-      event.preventDefault()
-      const deltaX = event.clientX - mouse.xPrev
-      const deltaY = event.clientY - mouse.yPrev
+      // event.preventDefault()
+      // const deltaX = event.clientX - mouse.xPrev
+      // const deltaY = event.clientY - mouse.yPrev
 
-      group.rotation.offset.x += deltaY * 0.005
-      group.rotation.offset.y += deltaX * 0.005
+      // group.rotation.offset.x += deltaY * 0.005
+      // group.rotation.offset.y += deltaX * 0.005
 
-      gsap.to(group.rotation, {
-        y: group.rotation.offset.y, 
-        x: group.rotation.offset.x,
-        duration: 2
-      })
-      mouse.xPrev = event.clientX
-      mouse.yPrev = event.clientY
+      // gsap.to(group.rotation, {
+      //   y: group.rotation.offset.y, 
+      //   x: group.rotation.offset.x,
+      //   duration: 2
+      // })
+      // mouse.xPrev = event.clientX
+      // mouse.yPrev = event.clientY
     }
   }, 
   { passive: false}
