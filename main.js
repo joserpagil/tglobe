@@ -255,7 +255,7 @@ addEventListener('mouseup', (event) => {
 })
 
 
-window.addEventListener("resize", onWindowResize, false);
+addEventListener("resize", onWindowResize, false);
 
 function onWindowResize() {
   camera.aspect = canvasContainer.offsetWidth / canvasContainer.offsetHeight;
@@ -264,19 +264,19 @@ function onWindowResize() {
   renderer.setSize(canvasContainer.offsetWidth, canvasContainer.offsetHeight);
 }
 
-addEventListener('resize', () => {
-  renderer.setSize(canvasContainer.
-  offsetWidth, canvasContainer.offsetHeight)
-  camera = new THREE.
-  PerspectiveCamera(
-  75, 
-  canvasContainer.offsetWidth / 
-    canvasContainer.offsetHeight,
-  0.1,
-  1000
-)
-  camera.position.z = 10
-})
+// addEventListener('resize', () => {
+//   renderer.setSize(canvasContainer.
+//   offsetWidth, canvasContainer.offsetHeight)
+//   camera = new THREE.
+//   PerspectiveCamera(
+//   75, 
+//   canvasContainer.offsetWidth / 
+//     canvasContainer.offsetHeight,
+//   0.1,
+//   1000
+// )
+//   camera.position.z = 10
+// })
 
 //mobile resonsiveness
 addEventListener('touchmove', (event) => {
