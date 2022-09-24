@@ -275,7 +275,7 @@ function onWindowResize() {
 
 
 //mobile resonsiveness
-addEventListener('touchmove', (event) => {
+addEventListener('touchstart', (event) => {
   event.clientX = event.touches[0].clientX
   event.clientY = event.touches[0].clientY
 
