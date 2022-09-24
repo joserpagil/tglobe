@@ -7,6 +7,7 @@ import fragmentShader from './src/shaders/fragment.glsl'
 import atmosphereVertexShader from './src/shaders/atmosphereVertex.glsl'
 import atmosphereFragmentShader from './src/shaders/atmosphereFragment.glsl'
 import globe from './src/img/globe.jpeg?url'
+import OrbitControls from 'three-orbitcontrols'
 
 const canvasContainer = document.
   querySelector('#canvasContainer')
@@ -255,7 +256,7 @@ addEventListener('mouseup', (event) => {
 })
 
 
-addEventListener("resize", onWindowResize, false);
+canvasContainer.addEventListener("resize", onWindowResize, false);
 
 function onWindowResize() {
   camera.aspect = canvasContainer.offsetWidth / canvasContainer.offsetHeight;
