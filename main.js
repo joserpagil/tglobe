@@ -313,9 +313,9 @@ addEventListener('touchmove', (event) => {
       mouse.yPrev = event.clientY
     }
   }, 
-  // { passive: false}
+  { passive: false}
 )
 
-// addEventListener('touchend', (event) => {
-//   mouse.down = false
-// })
+addEventListener('touchend', (event) => {
+  mouse.down = false
+})
