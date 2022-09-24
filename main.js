@@ -222,7 +222,7 @@ canvasContainer.addEventListener('mousedown', ({clientX, clientY}) => {
   mouse.yPrev = clientY
 })
 
-addEventListener('click tap', (event) => {
+addEventListener('mousemove', (event) => {
 // if (innerWidth >= 1280) {
   mouse.x = (event.clientX / innerWidth)
     * 2 - 1
@@ -275,7 +275,7 @@ function onWindowResize() {
 
 
 //mobile resonsiveness
-addEventListener('touchmove', (event) => {
+addEventListener('click tap', (event) => {
   event.clientX = event.touches[0].clientX
   event.clientY = event.touches[0].clientY
 
