@@ -22,6 +22,7 @@ let camera = new THREE.
   1000
 )
 
+
 //new renderer
 const renderer = new THREE.WebGLRenderer(
   {
@@ -252,6 +253,16 @@ gsap.set(popUpEl, {
 addEventListener('mouseup', (event) => {
   mouse.down = false
 })
+
+
+window.addEventListener("resize", onWindowResize, false);
+
+function onWindowResize() {
+  camera.aspect = canvasContainer.offsetWidth / canvasContainer.offsetHeight;
+  camera.updateProjectionMatrix();
+
+  renderer.setSize(canvasContainer.offsetWidth, canvasContainer.offsetHeight);
+}
 
 addEventListener('resize', () => {
   renderer.setSize(canvasContainer.
