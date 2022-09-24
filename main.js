@@ -7,7 +7,8 @@ import fragmentShader from './src/shaders/fragment.glsl'
 import atmosphereVertexShader from './src/shaders/atmosphereVertex.glsl'
 import atmosphereFragmentShader from './src/shaders/atmosphereFragment.glsl'
 import globe from './src/img/globe.jpeg?url'
-import OrbitControls from 'three-orbitcontrols'
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
 
 const canvasContainer = document.
   querySelector('#canvasContainer')
@@ -32,6 +33,11 @@ const renderer = new THREE.WebGLRenderer(
 })
 renderer.setSize(canvasContainer.offsetWidth, canvasContainer.offsetHeight)
 renderer.setPixelRatio(window.devicePixelRatio)
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.05;
+controls.enableZoom = true;
 
 // create a sphere
 const sphere = new THREE.Mesh(
@@ -169,6 +175,8 @@ const populationEl = document.querySelector('#populationEl') //change
 const populationValueEl = document.querySelector('#populationValueEl') //change
 
 function animate() {
+
+
   requestAnimationFrame(animate)
   renderer.render(scene, camera)
   //group.rotation.y += 0.001
@@ -208,52 +216,52 @@ function animate() {
 }
 animate()
 
-canvasContainer.addEventListener('mousedown', ({clientX, clientY}) => {
-  mouse.down = true
-  mouse.xPrev = clientX,
-  mouse.yPrev = clientY
-})
+// canvasContainer.addEventListener('mousedown', ({clientX, clientY}) => {
+//   mouse.down = true
+//   mouse.xPrev = clientX,
+//   mouse.yPrev = clientY
+// })
 
 addEventListener('mousemove', (event) => {
-if (innerWidth >= 1280) {
+// if (innerWidth >= 1280) {
   mouse.x = (event.clientX / innerWidth)
     * 2 - 1
   mouse.y = -(event.clientY / innerHeight)
     * 2 + 1
-} else {
-  const offset = canvasContainer.getBoundingClientRect().top
-  mouse.x = (event.clientX / innerWidth)
-    * 2 - 1
-  mouse.y = -((event.clientY - offset)/ innerHeight)
-    * 2 + 1
-}
+// } else {
+//   const offset = canvasContainer.getBoundingClientRect().top
+//   mouse.x = (event.clientX / innerWidth)
+//     * 2 - 1
+//   mouse.y = -((event.clientY - offset)/ innerHeight)
+//     * 2 + 1
+// }
     
 gsap.set(popUpEl, {
   x: event.clientX,
   y: event.clientY
 })
 
-  if (mouse.down) {
-    const deltaX = event.clientX - mouse.xPrev
-    const deltaY = event.clientY - mouse.yPrev
+  // if (mouse.down) {
+  //   const deltaX = event.clientX - mouse.xPrev
+  //   const deltaY = event.clientY - mouse.yPrev
 
-    group.rotation.offset.x += deltaY * 0.005
-    group.rotation.offset.y += deltaX * 0.005
+  //   group.rotation.offset.x += deltaY * 0.005
+  //   group.rotation.offset.y += deltaX * 0.005
 
-    gsap.to(group.rotation, {
-      y: group.rotation.offset.y, 
-      x: group.rotation.offset.x,
-      duration: 2
-    })
-    mouse.xPrev = event.clientX
-    mouse.yPrev = event.clientY
-    event.preventDefault()
-  }
+  //   gsap.to(group.rotation, {
+  //     y: group.rotation.offset.y, 
+  //     x: group.rotation.offset.x,
+  //     duration: 2
+  //   })
+  //   mouse.xPrev = event.clientX
+  //   mouse.yPrev = event.clientY
+  //   event.preventDefault()
+  // }
 })
 
-addEventListener('mouseup', (event) => {
-  mouse.down = false
-})
+// addEventListener('mouseup', (event) => {
+//   mouse.down = false
+// })
 
 
 canvasContainer.addEventListener("resize", onWindowResize, false);
@@ -265,19 +273,6 @@ function onWindowResize() {
   renderer.setSize(canvasContainer.offsetWidth, canvasContainer.offsetHeight);
 }
 
-// addEventListener('resize', () => {
-//   renderer.setSize(canvasContainer.
-//   offsetWidth, canvasContainer.offsetHeight)
-//   camera = new THREE.
-//   PerspectiveCamera(
-//   75, 
-//   canvasContainer.offsetWidth / 
-//     canvasContainer.offsetHeight,
-//   0.1,
-//   1000
-// )
-//   camera.position.z = 10
-// })
 
 //mobile resonsiveness
 addEventListener('touchmove', (event) => {
@@ -318,9 +313,9 @@ addEventListener('touchmove', (event) => {
       mouse.yPrev = event.clientY
     }
   }, 
-  { passive: false}
+  // { passive: false}
 )
 
-addEventListener('touchend', (event) => {
-  mouse.down = false
-})
+// addEventListener('touchend', (event) => {
+//   mouse.down = false
+// })
