@@ -11,11 +11,6 @@ import globe from './src/img/globe.jpeg?url'
 const canvasContainer = document.
   querySelector('#canvasContainer')
 
-const calcRadius = () => {
-  const minViewPoint = Math.min(canvasContainer.offsetWidth, canvasContainer.offsetHeight);
-  return Math.round(minViewPoint / 7 * 5 * 100) / 10000;
-}
-
 //new scene
 const scene = new THREE.Scene()
 let camera = new THREE.
@@ -38,7 +33,7 @@ renderer.setPixelRatio(window.devicePixelRatio)
 
 // create a sphere
 const sphere = new THREE.Mesh(
-  new THREE.SphereGeometry(calcRadius(), 50, 50),
+  new THREE.SphereGeometry(5, 50, 50),
   new THREE.ShaderMaterial({
     vertexShader,
     fragmentShader,
@@ -49,10 +44,11 @@ const sphere = new THREE.Mesh(
     }
   })
 )
+scene.add(sphere)
 
 // create atmosphere
 const atmosphere = new THREE.Mesh(
-  new THREE.SphereGeometry(calcRadius(), 50, 50),
+  new THREE.SphereGeometry(5, 50, 50),
   new THREE.ShaderMaterial({
     vertexShader: atmosphereVertexShader,
     fragmentShader: atmosphereFragmentShader,
@@ -63,9 +59,10 @@ const atmosphere = new THREE.Mesh(
 
 atmosphere.scale.set(1.1, 1.1, 1.1)
 
+scene.add(atmosphere)
+
 const group = new THREE.Group()
 group.add(sphere)
-group.add(atmosphere)
 scene.add(group)
 
 //create stars
@@ -114,7 +111,7 @@ function createBoxes(countries){
 
   const latitude = (lat / 180) * Math.PI
   const longitude = (lng / 180) * Math.PI
-  const radius = calcRadius()
+  const radius = 5
 
   const x = radius * Math.cos(latitude) * Math.sin(longitude)
   const y = radius * Math.sin(latitude)
@@ -257,30 +254,6 @@ addEventListener('mouseup', (event) => {
 })
 
 addEventListener('resize', () => {
-  const radius = calcRadius();
-  group.children[0].geometry.dispose();
-  group.children[0].geometry = new THREE.SphereGeometry(radius, 50, 50);
-  group.children[1].geometry.dispose();
-  group.children[1].geometry = new THREE.SphereGeometry(radius, 50, 50);
-
-  for (let i = 2; i < group.children.length; i++) {
-    const country = countries[i - 2];
-
-    const lat = country.latlng[0]
-    const lng = country.latlng[1]
-
-    const latitude = (lat / 180) * Math.PI
-    const longitude = (lng / 180) * Math.PI
-
-    const x = radius * Math.cos(latitude) * Math.sin(longitude)
-    const y = radius * Math.sin(latitude)
-    const z = radius * Math.cos(latitude) * Math.cos(longitude)
-
-    group.children[i].position.x = x
-    group.children[i].position.y = y
-    group.children[i].position.z = z
-  }
-
   renderer.setSize(canvasContainer.
   offsetWidth, canvasContainer.offsetHeight)
   camera = new THREE.
