@@ -216,11 +216,11 @@ function animate() {
 }
 animate()
 
-// canvasContainer.addEventListener('mousedown', ({clientX, clientY}) => {
-//   mouse.down = true
-//   mouse.xPrev = clientX
-//   mouse.yPrev = clientY
-// })
+canvasContainer.addEventListener('mousedown', ({clientX, clientY}) => {
+  mouse.down = true
+  mouse.xPrev = clientX
+  mouse.yPrev = clientY
+})
 
 addEventListener('mousemove', (event) => {
   mouse.x = (event.clientX / innerWidth)
@@ -234,9 +234,9 @@ gsap.set(popUpEl, {
 })
 })
 
-// addEventListener('mouseup', (event) => {
-//   mouse.down = false
-// })
+addEventListener('mouseup', (event) => {
+  mouse.down = false
+})
 
 
 canvasContainer.addEventListener("resize", onWindowResize, false);
@@ -276,6 +276,6 @@ addEventListener('touchstart', (event) => {
   { passive: false}
 )
 
-// addEventListener('touchend', (event) => {
-//   mouse.down = false
-// })
+addEventListener('touchend', (event) => {
+  mouse.down = false
+})
