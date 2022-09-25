@@ -216,13 +216,13 @@ function animate() {
 }
 animate()
 
-canvasContainer.addEventListener('pointerdown', ({clientX, clientY}) => {
+canvasContainer.addEventListener('mousedown', ({clientX, clientY}) => {
   mouse.down = true
   mouse.xPrev = clientX
   mouse.yPrev = clientY
 })
 
-addEventListener('pointermove', (event) => {
+addEventListener('mousemove', (event) => {
 if (innerWidth >= 1280) {
   mouse.x = (event.clientX / innerWidth)
     * 2 - 1
@@ -248,7 +248,7 @@ gsap.set(popUpEl, {
   }
 })
 
-addEventListener('pointerup', (event) => {
+addEventListener('mouseup', (event) => {
   mouse.down = false
 })
 
@@ -264,36 +264,36 @@ function onWindowResize() {
 
 
 //mobile resonsiveness
-// addEventListener('touchstart', (event) => {
-//   event.clientX = event.touches[0].clientX
-//   event.clientY = event.touches[0].clientY
+addEventListener('touchstart', (event) => {
+  event.clientX = event.touches[0].clientX
+  event.clientY = event.touches[0].clientY
 
-//     const doesIntersect = raycaster.intersectObject(sphere)
+    const doesIntersect = raycaster.intersectObject(sphere)
 
-//     if (doesIntersect.length > 0) mouse.down = true
+    if (doesIntersect.length > 0) mouse.down = true
 
-//     if (mouse.down) {
+    if (mouse.down) {
 
-//       const offset = canvasContainer.getBoundingClientRect().top
+      const offset = canvasContainer.getBoundingClientRect().top
 
-//       mouse.x = (event.clientX / innerWidth)
-//         * 2 - 1
-//       mouse.y = -((event.clientY - offset) / innerHeight)
-//         * 2 + 1
+      mouse.x = (event.clientX / innerWidth)
+        * 2 - 1
+      mouse.y = -((event.clientY - offset) / innerHeight)
+        * 2 + 1
 
-//       gsap.set(popUpEl, {
-//         x: event.clientX,
-//         y: event.clientY
-//       })
-//       event.preventDefault()
+      gsap.set(popUpEl, {
+        x: event.clientX,
+        y: event.clientY
+      })
+      event.preventDefault()
 
-//       mouse.xPrev = event.clientX
-//       mouse.yPrev = event.clientY
-//     }
-//   }, 
-//   { passive: false }
-// )
+      mouse.xPrev = event.clientX
+      mouse.yPrev = event.clientY
+    }
+  }, 
+  { passive: false }
+)
 
-// addEventListener('touchend', (event) => {
-//   mouse.down = false
-// })
+addEventListener('touchend', (event) => {
+  mouse.down = false
+})
