@@ -216,47 +216,22 @@ function animate() {
 }
 animate()
 
-canvasContainer.addEventListener('mousedown', ({clientX, clientY}) => {
-  mouse.down = true
-  mouse.xPrev = clientX,
-  mouse.yPrev = clientY
-})
+// addEventListener('mousedown', ({clientX, clientY}) => {
+//   mouse.down = true
+//   mouse.xPrev = clientX,
+//   mouse.yPrev = clientY
+// })
 
 addEventListener('mousemove', (event) => {
-// if (innerWidth >= 1280) {
   mouse.x = (event.clientX / innerWidth)
     * 2 - 1
   mouse.y = -(event.clientY / innerHeight)
     * 2 + 1
-// } else {
-//   const offset = canvasContainer.getBoundingClientRect().top
-//   mouse.x = (event.clientX / innerWidth)
-//     * 2 - 1
-//   mouse.y = -((event.clientY - offset)/ innerHeight)
-//     * 2 + 1
-// }
     
 gsap.set(popUpEl, {
   x: event.clientX,
   y: event.clientY
 })
-
-  // if (mouse.down) {
-  //   const deltaX = event.clientX - mouse.xPrev
-  //   const deltaY = event.clientY - mouse.yPrev
-
-  //   group.rotation.offset.x += deltaY * 0.005
-  //   group.rotation.offset.y += deltaX * 0.005
-
-  //   gsap.to(group.rotation, {
-  //     y: group.rotation.offset.y, 
-  //     x: group.rotation.offset.x,
-  //     duration: 2
-  //   })
-  //   mouse.xPrev = event.clientX
-  //   mouse.yPrev = event.clientY
-  //   event.preventDefault()
-  // }
 })
 
 // addEventListener('mouseup', (event) => {
@@ -296,21 +271,6 @@ addEventListener('touchstart', (event) => {
         x: event.clientX,
         y: event.clientY
       })
-
-      // event.preventDefault()
-      // const deltaX = event.clientX - mouse.xPrev
-      // const deltaY = event.clientY - mouse.yPrev
-
-      // group.rotation.offset.x += deltaY * 0.005
-      // group.rotation.offset.y += deltaX * 0.005
-
-      // gsap.to(group.rotation, {
-      //   y: group.rotation.offset.y, 
-      //   x: group.rotation.offset.x,
-      //   duration: 2
-      // })
-      // mouse.xPrev = event.clientX
-      // mouse.yPrev = event.clientY
     }
   }, 
   { passive: false}
