@@ -13,6 +13,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 const canvasContainer = document.
   querySelector('#canvasContainer')
 
+
 //new scene
 const scene = new THREE.Scene()
 let camera = new THREE.
@@ -28,7 +29,6 @@ let camera = new THREE.
 //new renderer
 const renderer = new THREE.WebGLRenderer(
   {
-    antialias: true,
     canvas: document.querySelector('canvas')
 })
 renderer.setSize(canvasContainer.offsetWidth, canvasContainer.offsetHeight)
@@ -185,6 +185,7 @@ function animate() {
 
   // update the picking ray with the camera and pointer position
   raycaster.setFromCamera(mouse, camera);
+  pointerDetectRay = projector.pickingRay(mouse2D.clone(), camera);//new ray
 
   // calculate objects intersecting the picking ray
   const intersects = raycaster.intersectObjects(group.
@@ -263,6 +264,12 @@ function onWindowResize() {
   renderer.setSize(canvasContainer.offsetWidth, canvasContainer.offsetHeight);
 }
 
+//new Raycaster
+var pointerDetectRay, projector, mouse2D; //global
+pointerDetectRay = new THREE.Raycaster();
+pointerDetectRay.ray.direction.set(0, -1, 0);
+projector = new THREE.Projector();
+mouse2D = new THREE.Vector3(0, 0, 0);
 
 //mobile resonsiveness
 addEventListener('touchstart', (event) => {
@@ -277,9 +284,9 @@ addEventListener('touchstart', (event) => {
 
       const offset = canvasContainer.getBoundingClientRect().top
 
-      mouse.x = (event.clientX / innerWidth)
+      mouse2D.x = (event.clientX / innerWidth)
         * 2 - 1
-      mouse.y = -((event.clientY - offset) / innerHeight)
+      mouse2D.y = -((event.clientY - offset) / innerHeight)
         * 2 + 1
 
       gsap.set(popUpEl, {
