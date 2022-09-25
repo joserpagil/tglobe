@@ -272,7 +272,8 @@ addEventListener('touchstart', (event) => {
         y: event.clientY
       })
     }
-  }
+  },
+  { passive: false}
 )
 
 addEventListener('touchend', (event) => {
