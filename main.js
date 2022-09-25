@@ -276,6 +276,6 @@ addEventListener('touchstart', (event) => {
   { passive: false}
 )
 
-addEventListener('touchend', (event) => {
-  mouse.down = false
-})
+// addEventListener('touchend', (event) => {
+//   mouse.down = false
+// })
