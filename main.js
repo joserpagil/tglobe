@@ -216,11 +216,11 @@ function animate() {
 }
 animate()
 
-// addEventListener('mousedown', ({clientX, clientY}) => {
-//   mouse.down = true
-//   mouse.xPrev = clientX,
-//   mouse.yPrev = clientY
-// })
+addEventListener('mousedown', ({clientX, clientY}) => {
+  mouse.down = true
+  mouse.xPrev = clientX,
+  mouse.yPrev = clientY
+})
 
 addEventListener('mousemove', (event) => {
   mouse.x = (event.clientX / innerWidth)
