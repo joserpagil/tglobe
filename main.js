@@ -223,15 +223,29 @@ canvasContainer.addEventListener('mousedown', ({clientX, clientY}) => {
 })
 
 addEventListener('mousemove', (event) => {
+if (innerWidth >= 1280) {
   mouse.x = (event.clientX / innerWidth)
     * 2 - 1
   mouse.y = -(event.clientY / innerHeight)
     * 2 + 1
+} else {
+  const offset = canvasContainer.getBoundingClientRect().top
+  mouse.x = (event.clientX / innerWidth)
+    * 2 - 1
+  mouse.y = -((event.clientY - offset)/ innerHeight)
+    * 2 + 1
+}
     
 gsap.set(popUpEl, {
   x: event.clientX,
   y: event.clientY
 })
+
+  if (mouse.down) {
+    mouse.xPrev = event.clientX
+    mouse.yPrev = event.clientY
+    event.preventDefault()
+  }
 })
 
 addEventListener('mouseup', (event) => {
@@ -239,7 +253,7 @@ addEventListener('mouseup', (event) => {
 })
 
 
-canvasContainer.addEventListener("resize", onWindowResize, false);
+addEventListener("resize", onWindowResize, false);
 
 function onWindowResize() {
   camera.aspect = canvasContainer.offsetWidth / canvasContainer.offsetHeight;
@@ -259,22 +273,24 @@ addEventListener('touchstart', (event) => {
     if (doesIntersect.length > 0) mouse.down = true
 
     if (mouse.down) {
+
+      event.preventDefault()
       const offset = canvasContainer.getBoundingClientRect().top
 
       mouse.x = (event.clientX / innerWidth)
         * 2 - 1
-      mouse.y = -((event.clientY - offset) / innerHeight)
+      mouse.y = -((event.clientY - offset)/ innerHeight)
         * 2 + 1
 
       gsap.set(popUpEl, {
         x: event.clientX,
         y: event.clientY
       })
-      event.preventDefault()
+
       mouse.xPrev = event.clientX
       mouse.yPrev = event.clientY
     }
-  },
+  }, 
   { passive: false }
 )
 
