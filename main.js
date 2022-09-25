@@ -216,9 +216,9 @@ function animate() {
 }
 animate()
 
-addEventListener('mousedown', ({clientX, clientY}) => {
+canvasContainer.addEventListener('mousedown', ({clientX, clientY}) => {
   mouse.down = true
-  mouse.xPrev = clientX,
+  mouse.xPrev = clientX
   mouse.yPrev = clientY
 })
 
@@ -271,6 +271,8 @@ addEventListener('touchstart', (event) => {
         x: event.clientX,
         y: event.clientY
       })
+      mouse.xPrev = event.clientX
+      mouse.yPrev = event.clientY
     }
   },
   { passive: false}
