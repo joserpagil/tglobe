@@ -234,9 +234,9 @@ gsap.set(popUpEl, {
 })
 })
 
-// addEventListener('mouseup', (event) => {
-//   mouse.down = false
-// })
+addEventListener('mouseup', (event) => {
+  mouse.down = false
+})
 
 
 canvasContainer.addEventListener("resize", onWindowResize, false);
