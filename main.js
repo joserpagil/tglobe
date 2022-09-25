@@ -216,11 +216,11 @@ function animate() {
 }
 animate()
 
-// canvasContainer.addEventListener('mousedown', ({clientX, clientY}) => {
-//   mouse.down = true
-//   mouse.xPrev = clientX
-//   mouse.yPrev = clientY
-// })
+canvasContainer.addEventListener('mousedown', ({clientX, clientY}) => {
+  mouse.down = true
+  mouse.xPrev = clientX
+  mouse.yPrev = clientY
+})
 
 addEventListener('mousemove', (event) => {
 if (innerWidth >= 1280) {
