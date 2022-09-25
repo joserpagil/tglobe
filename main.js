@@ -39,6 +39,7 @@ controls.enableDamping = true;
 controls.dampingFactor = 0.05;
 controls.enableZoom = true;
 
+
 // create a sphere
 const sphere = new THREE.Mesh(
   new THREE.SphereGeometry(5, 50, 50),
@@ -108,7 +109,7 @@ function createBoxes(countries){
   new THREE.BoxGeometry(
     Math.max(0.1, 0.1 * scale), 
     Math.max(0.1, 0.1 * scale), 
-    Math.max(zScale, 0.4 * Math.random())
+    Math.max(zScale, 0.8 * Math.random())
   ),
   new THREE.MeshBasicMaterial({
     color: '#3BF7FF',
@@ -210,7 +211,7 @@ function animate() {
     populationEl.innerHTML = box.country //change
     populationValueEl.innerHTML = box.population //change
 }
-
+  controls.update();
   renderer.render(scene, camera);
 
 }
