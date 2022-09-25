@@ -259,23 +259,25 @@ addEventListener('touchstart', (event) => {
     if (doesIntersect.length > 0) mouse.down = true
 
     if (mouse.down) {
+      const offset = canvasContainer.getBoundingClientRect().top
 
       mouse.x = (event.clientX / innerWidth)
         * 2 - 1
-      mouse.y = -((event.clientY - offset)/ innerHeight)
+      mouse.y = -((event.clientY - offset) / innerHeight)
         * 2 + 1
 
       gsap.set(popUpEl, {
         x: event.clientX,
         y: event.clientY
       })
+      event.preventDefault()
       mouse.xPrev = event.clientX
       mouse.yPrev = event.clientY
     }
   },
-  { passive: false}
+  { passive: false }
 )
 
-// addEventListener('touchend', (event) => {
-//   mouse.down = false
-// })
+addEventListener('touchend', (event) => {
+  mouse.down = false
+})
