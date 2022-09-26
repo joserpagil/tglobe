@@ -175,44 +175,42 @@ const populationEl = document.querySelector('#populationEl') //change
 const populationValueEl = document.querySelector('#populationValueEl') //change
 
 function animate() {
+	controls.update();
 
+	renderer.render(scene, camera)
+	//group.rotation.y += 0.001
 
-  requestAnimationFrame(animate)
-  renderer.render(scene, camera)
-  //group.rotation.y += 0.001
+	/*
+	// update the picking ray with the camera and pointer position
+	raycaster.setFromCamera(mouse, camera);
 
+	// calculate objects intersecting the picking ray
+	const intersects = raycaster.intersectObjects(group.
+	children.filter((mesh) => {
+	return mesh.geometry.type === 'BoxGeometry'
+	})
+	)
 
-  // update the picking ray with the camera and pointer position
-  raycaster.setFromCamera(mouse, camera);
+	group.children.forEach((mesh) => {
+	mesh.material.opacity = 0.4
+	})
 
-  // calculate objects intersecting the picking ray
-  const intersects = raycaster.intersectObjects(group.
-    children.filter((mesh) => {
-      return mesh.geometry.type === 'BoxGeometry'
-    })
-  )
+	gsap.set(popUpEl, {
+	display: 'none'
+	})
 
-  group.children.forEach((mesh) => {
-    mesh.material.opacity = 0.4
-  })
+	for ( let i = 0; i < intersects.length; i ++ ) {
+		const box = intersects[i].object
+		box.material.opacity = 1
 
-  gsap.set(popUpEl, {
-    display: 'none'
-  })
-
-  for ( let i = 0; i < intersects.length; i ++ ) {
-    const box = intersects[i].object
-    box.material.opacity = 1
-
-    gsap.set(popUpEl, {
-    display: 'block'
-  })
-    populationEl.innerHTML = box.country //change
-    populationValueEl.innerHTML = box.population //change
-}
-  controls.update();
-  renderer.render(scene, camera);
-
+		gsap.set(popUpEl, {
+		display: 'block'
+		})
+		populationEl.innerHTML = box.country //change
+		populationValueEl.innerHTML = box.population //change
+	}
+	*/
+	requestAnimationFrame(animate)	
 }
 animate()
 
@@ -262,7 +260,7 @@ function onWindowResize() {
   renderer.setSize(canvasContainer.offsetWidth, canvasContainer.offsetHeight);
 }
 
-
+/*
 //mobile resonsiveness
 addEventListener('touchstart', (event) => {
   event.clientX = event.touches[0].clientX
@@ -297,3 +295,53 @@ addEventListener('touchstart', (event) => {
 addEventListener('touchend', (event) => {
   mouse.down = false
 })
+*/
+
+// function to pick a box given coordinates
+const Pick_box = position => {
+	
+	// from the three.js docs : 2D coordinates of the mouse, in normalized device coordinates (NDC)---X and Y components should be between -1 and 1.	
+	const scaled_position = new THREE . Vector2 ( position . x / canvasContainer . offsetWidth  * 2 - 1 , - position . y / canvasContainer . offsetHeight  * 2 + 1 )
+	raycaster . setFromCamera ( scaled_position , camera )
+
+	// targets contain all boxes & also the sphere to avoid picking hidden boxes on the other side of the sphere
+	const targets = group . children . filter ( ( mesh ) => {
+		return true //mesh . geometry . type === 'BoxGeometry'
+	} )
+	const intersects = raycaster . intersectObjects ( targets )
+	
+	// if no intersections or the sphere is intersected remove the popUp & return
+	if ( ! intersects . length || sphere == intersects [ 0 ] . object ) {
+		gsap . set ( popUpEl , {
+			display : 'none'
+		} )
+		
+		return
+	}
+		
+	// display the picked box info
+	const box = intersects [ 0 ] . object	
+	
+    gsap . set ( popUpEl , {
+		display : 'block'
+	} )
+    populationEl      . innerHTML = box . country //change
+    populationValueEl . innerHTML = box . population //change	
+}
+
+// all listeners call Pick_box
+addEventListener ( 'touchstart', event => {
+	Pick_box ( new THREE . Vector2 ( event . touches [ 0 ] . pageX , event . touches [ 0 ] . pageY ) )
+} )
+
+addEventListener ( 'touchmove', event => {
+	Pick_box ( new THREE . Vector2 ( event . touches [ 0 ] . pageX , event . touches [ 0 ] . pageY ) )
+} )
+
+addEventListener ( 'pointerdown' , event => {
+	Pick_box ( new THREE . Vector2 ( event . pageX , event . pageY ) )
+} )
+
+addEventListener ( 'pointermove' , event => {
+	Pick_box ( new THREE . Vector2 ( event . pageX , event . pageY ) )
+} )
