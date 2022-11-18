@@ -1,29 +1,338 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>nomDAO</title>
-    <style>
-      body {
-        margin:  0;
-        }
-    </style>
-  </head>
-  <body>
-    <div id="popUpEl" class ="bg-black bg-opacity-75 fixed px-3 py-2 rounded-lg">
-      <h2 class ="text-white text-xs">
-        <span id= "populationEl"></span>
-        <span>Impact</span>
-      </h2>
-      <p id="populationValueEl" class = "text-white font-bold text-lg">300mil</p>
-    </div>
-      <div class="min-h-screen min-w-full" id="canvasContainer">
-        <canvas class="object-cover"></canvas>
-      </div>
-    <script type="module" src="/main.js"></script>
-  </body>
-</html>
+<!doctype html>
+<html lang='en'>
 
-<!-- Need to change popUpEl and populayiomnValueEl -->
+<head>
+
+	<meta charset='utf-8' />
+
+	<script src='./js/react.development.js'></script>
+	<script src='./js/react-dom.development.js'></script>
+	<script src='./js/babel.min.js'></script>
+
+	<script src='./js/three.min.js'></script>
+	<script src='./js/OrbitControls.js'></script>
+
+	<title>
+		world v221118 x joserpagil@gmail.
+	</title>
+
+</head>
+
+<style>
+	body {
+		margin: 0;
+		font-family : Arial ;
+		font-size: 17px;
+		color      : white ;
+	}
+
+	/* card css by BD start */
+	.card_flag_img {
+		margin-bottom: 5px;
+		height: 20px;
+	}
+
+	.card_flag_img img {
+		margin-bottom: 0px;
+	}
+
+	/* .main-container {
+		display: flex;
+		flex-direction: row;
+		position: relative;
+	} */
+
+	/* .globe-main {
+		position: absolute;
+		left: 20%;
+	} */
+
+	.card_info_main h3 {
+		font-family: 'Poppins', sans-serif;
+		font-size: 17px;
+		font-style: normal;
+		font-weight: 600;
+		line-height: 28px;
+		letter-spacing: 0em;
+		text-align: left;
+		padding-bottom: 4px;
+		margin: 0;
+		color : black ;
+	}
+
+	.card_info_main p {
+		font-family: 'Work Sans', sans-serif;
+		font-size: 14px;
+		font-style: normal;
+		font-weight: 400;
+		line-height: 16px;
+		letter-spacing: 0em;
+		text-align: left;
+		margin: 0;
+	}
+
+	/* card css by BD end */
+
+	.w100h100 {
+		width: 100%;
+		height: 100%;
+	}
+
+	.Card_div {
+		position: absolute;
+		color: black;
+		background: rgba(39, 39, 53, 0.9);
+		padding: 11px 30px 11px 15px;
+		opacity: .90;
+		width: max-content;
+	}
+
+	.canvas_div {
+		position: absolute;
+		background: rgba(39, 39, 53, 0.9);
+	}
+
+	.animate {
+		-webkit-animation: animatezoom 0.6s;
+		animation: animatezoom 0.6s;
+	}
+
+	@-webkit-keyframes animatezoom {
+		from {
+			-webkit-transform: scale(0)
+		}
+
+		to {
+			-webkit-transform: scale(1)
+		}
+	}
+
+	@keyframes animatezoom {
+		from {
+			transform: scale(0)
+		}
+
+		to {
+			transform: scale(1)
+		}
+	}
+
+	.fade-in-image {
+		animation: fadeIn 1s;
+		-webkit-animation: fadeIn 1s;
+		-moz-animation: fadeIn 1s;
+		-o-animation: fadeIn 1s;
+		-ms-animation: fadeIn 1s;
+	}
+
+	@keyframes fadeIn {
+		0% {
+			opacity: 0;
+		}
+
+		100% {
+			opacity: 0.9;
+		}
+	}
+
+	@-moz-keyframes fadeIn {
+		0% {
+			opacity: 0;
+		}
+
+		100% {
+			opacity: 0.9;
+		}
+	}
+
+	@-webkit-keyframes fadeIn {
+		0% {
+			opacity: 0;
+		}
+
+		100% {
+			opacity: 1;
+		}
+	}
+
+	@-o-keyframes fadeIn {
+		0% {
+			opacity: 0;
+		}
+
+		100% {
+			opacity: 0.9;
+		}
+	}
+
+	@-ms-keyframes fadeIn {
+		0% {
+			opacity: 0;
+		}
+
+		100% {
+			opacity: 0.9;
+		}
+	}
+
+	.globe-main {
+		position: absolute;
+	}
+
+	.main-container {
+		display: flex;
+		flex-direction: row;
+		position: relative;
+	}
+
+	.globe-inner {
+		height: 100%;
+	}
+
+	.full-container {
+		/* height: 100vh; */
+		overflow: hidden;
+	}
+
+	.cnt-sec {
+		position: absolute;
+		width: 42%;
+		/* height: 100%; */
+		top: 50%;
+		transform: translate(0, -50%);
+		/* font-size: 25px; */
+		/* left: 0; */
+	}
+
+	.cnt-sec h1,
+	.text-sec h1 {
+		font-size: 55px;
+	}
+
+	.cnt-sec p {
+		font-size: 20px;
+		padding-right: 146px;
+	}
+
+	.text-sec p {
+		font-size: 20px;
+	}
+
+	.cnt-main {
+		display: flex;
+		max-width: 1366px;
+		height: 100vh;
+		margin: auto;
+	}
+
+	.container-sec {
+		max-width: 1366px;
+		margin: auto;
+		margin-top: 150px;
+	}
+
+	.text-sec {
+		width: 66%;
+		margin: auto;
+		text-align: center;
+	}
+</style>
+
+<body>
+
+	<div id='Ap' />
+
+	<script type='text/babel'>
+
+		const Globe = props => {
+			const [ states, set_states ]    = React . useState ( [  ] )
+			const container_ref             = React . useRef   ( null )	
+			
+			let renderer = null
+			
+			const create_scene              = args => {
+				const  width       = props . width
+				const  height      = props . height
+				
+				const Init_ThreeJS = args => {
+					const radius                      = 500
+					const cloud_height                = radius * 1.05 //   5000
+					const billboard_height            = radius * 1.06 //   5000
+					
+					const Render                      = args => {
+						renderer . render ( scene , camera )
+					}
+					const Tik                         = args => {
+						cloud_mesh . rotation . y += .001
+						
+						Render ()
+					}
+
+					const scene                               = new THREE . Scene             ()
+					const camera                              = new THREE . PerspectiveCamera ( 50 , width / height , .1 , radius * 8 )
+					camera           . position . z           = radius * 4
+					renderer                                  = new THREE . WebGLRenderer     ()
+					renderer         . setPixelRatio                                          ( devicePixelRatio )
+					renderer         . setSize                                                ( width , height )
+					container_ref    . current  . appendChild                                 ( renderer . domElement )
+					
+					scene            . add                                                    ( new THREE . AmbientLight ( - 1 , .2 ) )
+					const pointLight                          = new THREE . PointLight        ( 0xffffff , 0.9 )
+					pointLight       . position . set                                         ( radius * 4 * 5 , radius * 4 * 5 , radius * 4 * 5 )
+					scene            . add                                                    ( pointLight )
+
+					const earth_mesh = new THREE . Mesh (
+						new THREE . SphereGeometry    ( radius , 32 , 32 ) ,
+						new THREE . MeshStandardMaterial ( {
+							map       : new THREE . TextureLoader () . load ( './assets/earthmap1k.jpg' ) ,
+							bumpMap   : new THREE . TextureLoader () . load ( './assets/earthbump.jpg' ) ,
+							bumpScale : radius / 4 } ) )
+					scene . add ( earth_mesh )
+
+					const cloud_mesh = new THREE . Mesh (
+						new THREE . SphereGeometry    ( cloud_height , 32 , 32 ) ,
+						new THREE . MeshStandardMaterial ( {
+							map         : new THREE . TextureLoader () . load ( './assets/earthCloud.png' ) ,
+							transparent : true } ) )
+					scene . add ( cloud_mesh )
+					
+					const orbitControls = new THREE . OrbitControls ( camera , renderer . domElement )
+					
+					setInterval ( Tik , 1000 / 33 )			
+				}
+
+				Init_ThreeJS ()
+			}
+			const destroy_scene             = args => {
+				//cancelAnimationFrame ( frameId )
+				//container_ref . current . removeChild ( renderer . domElement )
+			}
+			React . useEffect ( () => {
+				if ( ! renderer ) create_scene ()
+				return destroy_scene
+			}, [])	
+			
+			return <div ref = { container_ref } />
+		}
+
+		class Ap extends React . Component {
+			constructor ( props ) {
+				super( props )
+			}
+			render      () {
+				return (
+					<Globe
+						width  = { window . innerWidth   }
+						height = { window . innerHeight  }
+					/>
+				)
+			}
+		}
+
+		ReactDOM . render ( <Ap /> , document . getElementById ( 'Ap' ) )
+
+	</script>
+
+</body>
+
+</html>
