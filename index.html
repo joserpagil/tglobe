@@ -13,7 +13,7 @@
 	<script src='./js/OrbitControls.js'></script>
 
 	<title>
-		world v221119 x joserpagil@gmail.
+		world v221206 x joserpagil@gmail.
 	</title>
 
 </head>
@@ -40,14 +40,19 @@
 
 	<div id = 'Ap' /></div >
 	<div id = 'log_div'></div >
+	
+	<script id = 'fragment_shader_source'   type = 'x-shader/x-fragment'>
+	</script>
 
 	<script type='text/babel'>
 	
+		{ // log
 		const Log  = args =>  {
 			log_div . innerHTML += args . html + '<br>'
 		}
 		addEventListener ( 'error' , errorEvent => { Log ( { html : errorEvent . lineno + ' , ' + errorEvent . colno + ' - ' + errorEvent . message } ) } )
-	
+		}
+		
 		const Globe = props => {
 			const [ states, set_states ]    = React . useState ( [  ] )
 			const container_ref             = React . useRef   ( null )	
@@ -55,24 +60,42 @@
 			const width  = props . width
 			const height = props . height
 			
-			const radius                      = 500
-			const cloud_height                = radius * 1.05 //   5000
-			const billboard_height            = radius * 1.06 //   5000
-			const Marker_size                 =  10
+			const globe_radius                = 5
 			const Deg2Rad                     = Math.PI / 180
 			const Rad2Deg                     = 180 / Math.PI
 			let   scene                       = null
+			let   camera                      = null
 			let   renderer                    = null
+			const data_point_threshold        = .75 
 			
 			const Lat_lon_to_cartesian         = args => {
+			/*
 				const phi   = ( 90 - args . lat ) * Deg2Rad
 				const theta = (    - args . lon ) * Deg2Rad
 				return {
-					x : radius * Math . sin ( phi ) * Math . cos ( theta ) ,
-					y : radius * Math . cos ( phi ) ,
-					z : radius * Math . sin ( phi ) * Math . sin ( theta )
+					x : globe_radius * Math . sin ( phi ) * Math . cos ( theta ) ,
+					y : globe_radius * Math . cos ( phi ) ,
+					z : globe_radius * Math . sin ( phi ) * Math . sin ( theta )
 				}
+					function Lat_lon_to_cartesian(args){
+					  const phi = (90 - args.lat ) * Math.PI / 180
+					  const theta = (90 - args.lon ) * Math.PI / 180
+					  return {
+						x: globe_radius * Math.sin(phi) * Math.cos(theta),
+						y: globe_radius * Math.cos(phi),
+						z: globe_radius * Math.sin(phi) * Math.sin(theta)
+					  }
+					  */
+					  const latitude = (args . lat / 180) * Math.PI
+					  const longitude = (args . lon / 180) * Math.PI
+					  return {
+						x: globe_radius * Math.cos(latitude) * Math.sin(longitude) ,
+						y: globe_radius * Math.sin(latitude) ,
+						z: globe_radius * Math.cos(latitude) * Math.cos(longitude)
+					  }
+					  
 			}
+
 			class Lat_lon                {
 				constructor ( args ) {
 					this . lat = 0
@@ -85,11 +108,13 @@
 				}
 			}
 			class Marker extends Lat_lon {
+				static Marker_size = .1
+
 				constructor ( args ) {
 					super ( args )
 					
 					this . mesh = new THREE . Mesh ( 
-						new THREE . PlaneGeometry ( Marker_size , Marker_size ) , 
+						new THREE . PlaneGeometry ( Marker . Marker_size , Marker . Marker_size ) , 
 						new THREE . MeshBasicMaterial ( {
 							color : 'hotpink' ,
 							side  : THREE.DoubleSide ,
@@ -100,59 +125,570 @@
 					this . mesh . position . set ( cartesian . x        , cartesian . y      , cartesian . z )
 				}
 			}
-			
-			const create_scene              = args => {
+			class Evento                 {
+				static Eventos = []
+				static Showed  = null
+				static Showed_last  = 0
 				
+				constructor ( args ) {
+					this . creation       = Date . now ()
+					this . lat            = 0
+					this . lon            = 0
+					this . mesh           = null
+					this . div            = null
+					this . html           = ''
+					this . image          = null
+					this . texture_frames = []
+					this . old_dot
+					this . curve_start
+					this . curve_factor
+
+					let found = false
+					let i = 0
+					while ( ! found && i < Evento . Eventos . length)
+						found = Evento . Eventos [ i ++ ] . creation == args . creation
+					if (!found) {
+						if (args) {
+							if ( 'creation' in args ) this . creation = args . creation
+							if ( 'lat'      in args ) this . lat      = args . lat
+							if ( 'lon'      in args ) this . lon      = args . lon
+							if ( 'width'    in args ) this . width    = args . width
+							if ( 'height'   in args ) this . height   = args . height
+							if ( 'image'    in args ) this . image    = args . image
+							//if ( 'html'     in args ) if ( args . html != '' ) this . html = args . html
+						}
+
+						if (this.html == '') {
+							this.html += '<div>'
+							//if ('card_flag' in args) this.html += '<div class="card_flag_img"><img src = "' + args.card_flag + '"/></div>'
+							if ('card_flag' in args) this.html += '<img src = "' + args.card_flag + '"/>'
+							//this.html += '<div class="card_info_main">'
+							if ('card_title' in args) this.html += '<label>' + args.card_title + '</label>'
+							//if ('card_title' in args) this.html += '<h3>' + args.card_title + '</h3>'
+							if ('card_subtitle' in args) this.html += '<p>' + args.card_subtitle + '</p>'
+							//this.html += '</div>'
+							this.html += '</div>'
+						}
+
+						let meshBasicMaterial
+						if (this.texture_frames.length > 0) meshBasicMaterial = new THREE.MeshBasicMaterial({ map: this.texture_frames[0], transparent: true, side: THREE.DoubleSide })
+						else meshBasicMaterial = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide, transparent: true })
+
+						this.mesh = new THREE.Mesh(new THREE.PlaneGeometry(states.point_side, states.point_side), meshBasicMaterial)
+						let cartesian = Lat_lon_to_cartesian({ lat: this.lat, lon: this.lon })
+						this.mesh.position.set(cartesian.x, cartesian.y, cartesian.z)
+						this.mesh.rotation.set(- this.lat * Deg2Rad, this.lon * Deg2Rad, 0, 'YXZ')
+						this.frame_index = Math.floor(Math.random() * this.texture_frames.length)
+						this.tts = 3
+						this.current_tts = 0
+
+						this.div = document.createElement('div')
+						this.div.style.position = 'absolute'
+						this.div.style.background = 'white'
+						this.div.style.display = 'none'
+						this.div.style.padding = '1vmax'
+						this.div.className = 'Card_div fade-in-image'
+						this.div.innerHTML = this.html
+						container_ref.current.appendChild(this.div)
+						//renderer.domElement.appendChild(this.div)
+
+						let v_camera = new THREE.Vector3()
+						v_camera.subVectors(camera, this.mesh.position)
+						this.old_dot = v_camera.dot(v_camera)
+
+						if ( Evento . Showed != null )
+							Evento . Showed . hide ()
+
+						Evento . Eventos . push(this)
+					}
+				}
+				hide() {
+					this.div.style.display = 'none'
+
+					Evento . Showed = null
+					Evento . Showed_last = new Date().getTime()
+				}
+				show() {
+					Evento . Showed = this
+
+					this.curve_start = new Date().getTime()
+					this.curve_factor = 0
+					this.div.style.display = 'block'
+
+					let cartesian = Lat_lon_to_cartesian({ lat: this.lat, lon: this.lon })
+					//spinner_mesh.position.set(cartesian.x, cartesian.y, cartesian.z)
+					//spinner_mesh.rotation.set(- this.lat * Deg2Rad, this.lon * Deg2Rad, 0, 'YXZ')
+				}
+			}
+			
+			const create_scene              = async args => {
 				const Init_ThreeJS   = args => {
-					const Render                      = args => {
-						renderer . render ( scene , camera )
+					/*
+					const canvas = document . createElement ( 'canvas' )
+					const context = canvas . getContext ( '2d' )
+					context . fillStyle = 'red'
+					context . fillRect ( 0 , 0 , canvas . width , canvas . height )
+					container_ref . current . appendChild ( canvas )
+					*/
+					
+					/*
+					import './style.css'
+					import * as THREE from 'three'
+					import gsap from 'gsap'
+					import countries from './countries.json'
+					import vertexShader from './src/shaders/vertex.glsl'
+					import fragmentShader from './src/shaders/fragment.glsl'
+					import atmosphereVertexShader from './src/shaders/atmosphereVertex.glsl'
+					import atmosphereFragmentShader from './src/shaders/atmosphereFragment.glsl'
+					import globe from './src/img/globe.jpeg?url'
+					import cloud from './src/img/earthCloud.png?url'
+					import smoke from './src/img/smoke.png?url'
+					import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
+					*/
+
+					let portal
+
+					const canvasContainer = container_ref . current // document . querySelector('#canvasContainer')
+					
+					//new scene
+					scene = new THREE.Scene()
+					camera = new THREE.
+					  PerspectiveCamera(
+					  75, 
+					  width / height , //canvasContainer.offsetWidth / canvasContainer.offsetHeight,
+					  0.1,
+					  1000
+					)
+
+					//new renderer
+					renderer = new THREE.WebGLRenderer( /*{ canvas: document.querySelector('canvas') }*/ )
+					renderer.setSize( width , height )//canvasContainer.offsetWidth, canvasContainer.offsetHeight)
+					//renderer.setPixelRatio(window.devicePixelRatio)
+					canvasContainer . appendChild ( renderer . domElement )					
+
+					const controls = new THREE.OrbitControls(camera, renderer.domElement);
+					controls.enableDamping = true;
+					controls.dampingFactor = 0.05;
+					controls.enableZoom = true;
+					controls.enablePan = false;
+
+					// create a sphere
+					const sphere = new THREE.Mesh(
+					  new THREE.SphereGeometry(globe_radius, 50, 50),
+					  //new THREE.MeshStandardMaterial ( { map : new THREE.TextureLoader().load('./assets/globe.jpeg') } )
+					  new THREE.ShaderMaterial( {
+						vertexShader : `
+							varying vec2 vertexUV;
+							varying vec3 vertexNormal;
+
+							void main() {
+							vertexUV = uv;
+							vertexNormal = normalize(normalMatrix * normal);
+
+							gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+						}` ,
+						fragmentShader : `
+							uniform sampler2D globeTexture;
+
+							varying vec2 vertexUV;
+							varying vec3 vertexNormal;
+
+
+							void main() {
+								float intensity = 1.05 - dot(vertexNormal, vec3(0.0, 0.0, 1.0 ));
+								vec3 atmosphere = vec3(0.3, 0.6, 1.0) * pow(intensity, 1.5);
+
+								gl_FragColor = vec4(atmosphere + texture2D(globeTexture, vertexUV).xyz, 1.0);
+							}							
+						` ,
+						uniforms: {
+						  globeTexture: {
+							value: new THREE.TextureLoader().load('./assets/globe.jpeg')
+						  }
+						}
+					  })
+					)
+					scene.add(sphere)
+
+					//clouds
+					const clouds = new THREE.Mesh(
+					  new THREE.SphereGeometry(globe_radius + 0.1, 50, 50),
+					  new THREE.MeshBasicMaterial({
+						map: new THREE.TextureLoader().load('./assets/earthCloud.png'),
+						transparent: true,
+						depthWrite : false
+					  })
+					)
+					scene.add(clouds)
+/*
+					// create atmosphere
+					const atmosphere = new THREE.Mesh(
+					  new THREE.SphereGeometry(globe_radius, 50, 50),
+					  new THREE.ShaderMaterial({
+						vertexShader: atmosphereVertexShader,
+						fragmentShader: atmosphereFragmentShader,
+						blending: THREE.AdditiveBlending,
+						side: THREE.BackSide
+					  })
+					)
+
+					atmosphere.scale.set(1.1, 1.1, 1.1)
+
+					scene.add(atmosphere)
+*/
+					const group = new THREE.Group()
+					group.add(sphere)
+					scene.add(group)
+
+					//create stars
+					const starGeometry = new THREE.BufferGeometry()
+					const starMaterial = new THREE.PointsMaterial ({
+					  color: 0xffffff
+					})
+
+					const starVertices = []
+					for (let i = 0; i < 10000; i++) {
+						const x = (Math.random() - 0.5) * 1000
+						const y = (Math.random() - 0.5) * 1000
+						const z = (Math.random() - 0.5) * 1000
+						starVertices.push(x, y, z)
 					}
-					const Tik                         = args => {
-						cloud_mesh . rotation . y += .001
+
+					starGeometry.setAttribute('position', 
+					  new THREE.Float32BufferAttribute(
+					  starVertices, 3))
+
+					  const stars = new THREE.Points(
+						starGeometry, starMaterial)
+					scene.add(stars)
+
+					camera.position.z = 10
+
+					function createBoxes(countries){
+						let creation = 0
+					  countries.forEach(country => {
+						const scale = country.population / 1000000000
+						const lat = country.latlng[0]
+						const lng = country.latlng[1]
+						const zScale = 0.8 * scale
+
+					  const box = new THREE.Mesh(
+					  new THREE.BoxGeometry(
+						Math.max(0.1, 0.1 * scale), 
+						Math.max(0.1, 0.1 * scale), 
+						Math.max(zScale, 0.4 * Math.random())
+					  ),
+					  new THREE.MeshBasicMaterial({
+						color: '#3BF7FF',
+						opacity: 0.4,
+						transparent: true
+					  })
+					  )
+
+					  const latitude = (lat / 180) * Math.PI
+					  const longitude = (lng / 180) * Math.PI
+
+					  const x = globe_radius * Math.cos(latitude) * Math.sin(longitude)
+					  const y = globe_radius * Math.sin(latitude)
+					  const z = globe_radius * Math.cos(latitude) * Math.cos(longitude)
+
+					  box.position.x = x
+					  box.position.y = y
+					  box.position.z = z
+
+					  box.lookAt(0, 0, 0)
+					  box.geometry.applyMatrix4(new THREE.
+						Matrix4().makeTranslation(0, 0, -zScale / 2))
+
+					  group.add(box)
+
+					//animation box scale
+					  // gsap.to(box.scale, {
+					  //   z: 1.4,
+					  //   duration: 2,
+					  //   yoyo: true,
+					  //   repeat: -1,
+					  //   ease: 'linear',
+					  //   delay: Math.random()
+					  // })
+
+					  box.country = country.name //change this later
+					  box.population = new Intl. NumberFormat().format(country.population)//change this later
+
+						/*
+					  const marker = new Marker ( { 
+						description : country.name ,
+						lat ,     //         : latitude , 
+						lon : lng //         : longitude ,
+					  } )
+					  scene . add ( marker . mesh )					  
+					  */
+					  
+					  new Evento ( {
+						creation ,
+						lat ,
+						lon : lng ,
+						card_title : country.name ,
+						card_flag: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAUCAYAAACeXl35AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAGlSURBVHgBxZM/SAJRHMe/d14FZRFh2VKDS5PYEKRTBOnQYgTSIChuIRKF5GZBbgWCTgqBig6BU4ODCFZD2Ja5NdgS4f+wMDDUu56vhhrlyfWBe/y439373vd7v8eZTMcSBuC0cgsWhP5iNOrIyiGTycPtNiORuMH3/WVSX//pL5wcggUqKIoilMoxGAxLKJUamJubos3Z2UloNGqMj4+i1WpjGHD9SEWxRzf2enfgcASIyy1UKk3E41eIxfYRDqeRyz2C5xXDidRqXaNu7HY/otED+HwXxOU0IpE92Gx+0l+HXr+EQCAFXT4DFqhDlUpJBCah1WpQLL5gfn6GNguFJ5jNBmSzD8TxG+r1D5yvToAFnqpyPC1VqgnUau/kn0qQJBFq9QzK5VdSc+QZBX1BYrxopBaLgQg1EQymEArtkiizqFab8Hi24XSG4XJt0g9JJu+wyDilP0PT6ZdkKAR0u59QKEZos9frQBDG8LvPOjRcOn0/0MFfaVfBgsC6waBwed3GQA6ZBSUCZER4PjqDnAiy2sM/RCr/0DQu07IK8pAZ2SP9Aj6fskArdbcvAAAAAElFTkSuQmCC',
+						card_subtitle: new Intl. NumberFormat().format(country.population),
+					  } )
+					  creation ++
+					  } )
+					}
+					
+					fetch('./countries.json')
+						.then((response) => response.json())
+						.then((json) => createBoxes(json));					
+
+					sphere.rotation.y = -Math.PI / 2
+					group.rotation.offset = {
+					  x: 0,
+					  y: 0
+					}
+
+					const mouse = {
+					  x: undefined,
+					  y: undefined,
+					  down: false,
+					  xPrev: undefined,
+					  yPrev: undefined
+					}
+
+					const raycaster = new THREE.Raycaster();
+					const popUpEl = document.querySelector('#popUpEl')
+					const populationEl = document.querySelector('#populationEl') //change
+					const populationValueEl = document.querySelector('#populationValueEl') //change
+
+					canvasContainer.addEventListener('mousedown', ({clientX, clientY}) => {
+					  mouse.down = true
+					  mouse.xPrev = clientX
+					  mouse.yPrev = clientY
+					})
+
+					addEventListener('mousemove', (event) => {
+					  mouse.x = (event.clientX / innerWidth)
+						* 2 - 1
+					  mouse.y = -(event.clientY / innerHeight)
+						* 2 + 1
+					/*	
+					gsap.set(popUpEl, {
+					  x: event.clientX,
+					  y: event.clientY
+					})
+*/
+					})
+
+					canvasContainer.addEventListener("resize", onWindowResize, false);
+
+					function onWindowResize() {
+					  camera.aspect = canvasContainer.offsetWidth / canvasContainer.offsetHeight;
+					  camera.updateProjectionMatrix();
+
+					  renderer.setSize(canvasContainer.offsetWidth, canvasContainer.offsetHeight);
+					}
+
+					//mobile resonsiveness
+					addEventListener('touchstart', (event) => {
+					  event.clientX = event.touches[0].clientX
+					  event.clientY = event.touches[0].clientY
+
+						const doesIntersect = raycaster.intersectObject(sphere)
+
+						if (doesIntersect.length > 0) mouse.down = true
+
+						if (mouse.down) {
+					  
+						  const offset = canvasContainer.getBoundingClientRect().top
+
+						  mouse.x = (event.clientX / innerWidth)
+							* 2 - 1
+						  mouse.y = -((event.clientY - offset)/ innerHeight)
+							* 2 + 1
+/*
+						  gsap.set(popUpEl, {
+							x: event.clientX,
+							y: event.clientY
+						  })
+*/
+						}
+					  }, 
+					  { passive: false }
+					)
+
+					addEventListener('touchend', (event) => {
+					  mouse.down = false
+					})
+
+					//longitude and latitude to cartisan for portal
+					function Lat_lon_to_cartesian(args){
+					  const phi = (90 - args.lat ) * Math.PI / 180
+					  const theta = (90 - args.lon ) * Math.PI / 180
+					  return {
+						x: globe_radius * Math.sin(phi) * Math.cos(theta),
+						y: globe_radius * Math.cos(phi),
+						z: globe_radius * Math.sin(phi) * Math.sin(theta)
+					  }
+					}
+
+					//add Thanos Portal
+					class Portal extends THREE.Group {
+					  constructor(args) {
+						super(args)
 						
-						Render ()
+						this.scene = new THREE.Scene ()
+						this.camera = new THREE.PerspectiveCamera(80, 1, 0.1, 10000)
+						this.camera.position.z = 1000
+						this.canvas  = document.createElement( 'canvas' )
+						this.renderer = new THREE . WebGLRenderer( { canvas: this.canvas, alpha: true } )
+						this.renderer.setClearAlpha ( 0 )
+						
+						this.clock = new THREE.Clock ()
+						
+						this.plane = new THREE.Mesh(new THREE.PlaneGeometry(args.radius, args.radius), new THREE.MeshBasicMaterial( { transparent : true } ))
+						this.add(this.plane)
+						
+						this . set_lat_lon ( args )
+						
+						this . particles = []
+						
+							this . sceneLight = new THREE . DirectionalLight ( 0xffffff ,0.5 )
+							this . sceneLight . position  . set              ( 0 , 0 , 1 )
+						this . scene      . add                          ( this . sceneLight )
+						
+						this . light      = new THREE  . PointLight      ( 0x062d89 , 30 , 600 , 1.7 )
+							this . light      . position   . set             ( 0 , 0 , 250 )
+						this . scene      . add                          ( this . light )
+						
+						let loader = new THREE . TextureLoader ()
+						loader . load ( './assets/smoke.png' , texture => {
+						  const portalGeo      = new THREE . PlaneGeometry ( 350 , 350 )
+						  const portalMaterial = new THREE . MeshStandardMaterial   ( {
+							map         : texture ,
+							transparent : true
+						  } )
+						  const smokeGeo       = new THREE . PlaneGeometry  ( 800 , 800 ) //orig: 900, 900
+						  const smokeMaterial  = new THREE . MeshStandardMaterial ( {
+							map         : texture ,
+							transparent : true 
+						  } )
+						  
+						  for ( let p = 880 ; p > 250 ; p-- ) { //orig: 880 and 250
+							const particle = new THREE . Mesh ( portalGeo , portalMaterial )
+							particle . position . set (
+											0.5 * p * Math.cos((4 * p * Math.PI) / 180),
+											0.5 * p * Math.sin((4 * p * Math.PI) / 180),
+											0.1 * p
+										);
+							particle . rotation . z = Math . random () * 360
+							 particle         . material .opacity = 1.0 //orig: 1
+							this . particles . push ( particle )
+							this . scene . add ( particle )
+						  }
+						  
+						  for ( let p = 0 ; p < 40 ; p++ ) { //orig: 40
+							let particle = new THREE . Mesh ( smokeGeo , smokeMaterial )
+										particle.position.set(
+											Math.random() * 1000-500,
+											Math.random() * 400-200,
+											25
+										);
+							particle         . rotation .z = Math.random() *360
+							particle         . material .opacity = 0.6 //orig: 0.6
+							this . particles . push     ( particle )
+							this . scene     . add      ( particle )
+								}
+						} )
+					  }
+					  animate     ( args ) {
+						let delta = this . clock . getDelta () ;
+						this . particles.forEach(p => {
+						  p.rotation.z -= delta *0.2; //orig: 1.5
+						});
+						if(Math.random() > 0.9) {
+						  this . light.power =50 + Math.random()*500; //orig: 350 +....500
+						}
+						
+						this . render ()
+					  }
+					  render      ( args ) {
+						this . renderer . render ( this . scene , this . camera )
+						const texture = new THREE . CanvasTexture ( this . canvas )
+						this . plane . material . map = texture
+					  }
+					  set_lat_lon ( args ) {
+						this . position . copy ( Lat_lon_to_cartesian ( args ) )
+						this . rotation . set  ( - args . lat * Math . PI / 180 , args . lon * Math . PI / 180 , 0 , 'YXZ' )    
+					  }
 					}
 
-					scene                               = new THREE . Scene             ()
-					const camera                              = new THREE . PerspectiveCamera ( 50 , width / height , .1 , radius * 8 )
-					camera           . position . z           = radius * 4
-					renderer                                  = new THREE . WebGLRenderer     ()
-					//renderer         . setPixelRatio                                          ( devicePixelRatio )
-					renderer         . setSize                                                ( width , height )
-					container_ref    . current  . appendChild                                 ( renderer . domElement )
-					
-					scene            . add                                                    ( new THREE . AmbientLight ( - 1 , .2 ) )
-					const pointLight                          = new THREE . PointLight        ( 0xffffff , 0.9 )
-					pointLight       . position . set                                         ( radius * 4 * 5 , radius * 4 * 5 , radius * 4 * 5 )
-					scene            . add                                                    ( pointLight )
+					portal = new Portal( {radius: 3, lat: 25, lon: -40} )
+					scene.add(portal)
 
-					const earth_mesh = new THREE . Mesh (
-						new THREE . SphereGeometry    ( radius , 32 , 32 ) ,
-						new THREE . MeshStandardMaterial ( {
-							map       : new THREE . TextureLoader () . load ( './assets/earthmap1k.jpg' ) ,
-							bumpMap   : new THREE . TextureLoader () . load ( './assets/earthbump.jpg' ) ,
-							bumpScale : radius / 4 } ) )
-					scene . add ( earth_mesh )
+					function animate() {
+					  portal.animate()
+					  requestAnimationFrame(animate)
+					  renderer.render(scene, camera)
+					  //group.rotation.y += 0.001
+					  clouds.rotation.y -= 0.0001
+					  controls.update()
 
-					const cloud_mesh = new THREE . Mesh (
-						new THREE . SphereGeometry    ( cloud_height , 32 , 32 ) ,
-						new THREE . MeshStandardMaterial ( {
-							map         : new THREE . TextureLoader () . load ( './assets/earthCloud.png' ) ,
-							transparent : true } ) )
-					scene . add ( cloud_mesh )
-					
-					const orbitControls = new THREE . OrbitControls ( camera , renderer . domElement )
-					
-					setInterval ( Tik , 1000 / 33 )			
-				}
-				const Create_markers = args => {
-					for ( const poi of props . pois ) {
-						const marker = new Marker ( poi )
-						scene . add ( marker . mesh )
+
+					  // update the picking ray with the camera and pointer position
+					  raycaster.setFromCamera(mouse, camera);
+
+					  // calculate objects intersecting the picking ray
+					  const intersects = raycaster.intersectObjects(group.
+						children.filter((mesh) => {
+						  return mesh.geometry.type === 'BoxGeometry'
+						})
+					  )
+
+					  group.children.forEach((mesh) => {
+						mesh.material.opacity = 0.4
+					  })
+/*
+					  gsap.set(popUpEl, {
+						display: 'none'
+					  })
+*/
+					  for ( let i = 0; i < intersects.length; i ++ ) {
+						const box = intersects[i].object
+						box.material.opacity = 1
+/*
+						gsap.set(popUpEl, {
+						display: 'block'
+
+					  })
+*/
+//						populationEl.innerHTML = box.country //change
+//						populationValueEl.innerHTML = box.population //change
 					}
+
+					  renderer.render(scene, camera);
+
+					}
+					animate()
+					
+					setInterval ( () => {
+						let candidates = []
+						let v_camera = new THREE.Vector3()
+						for ( const eve of Evento . Eventos ) {
+							v_camera.subVectors(camera.position, eve.mesh.position)
+							v_camera.normalize()
+							let v = eve.mesh.position.clone()
+							v.normalize()
+							let dot = v.dot(v_camera)
+							if (dot >= data_point_threshold)
+								candidates.push(eve)
+						}
+						if (candidates.length > 0) {
+							let e = candidates[Math.floor(Math.random() * candidates.length)]
+							e.show()
+						}					
+					} , 1000 / 30 )
 				}
+
 				Init_ThreeJS ()
-				Create_markers ()
 			}
 			const destroy_scene             = args => {
 				//cancelAnimationFrame ( frameId )
