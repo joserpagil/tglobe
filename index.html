@@ -13,7 +13,7 @@
 	<script src='./js/OrbitControls.js'></script>
 
 	<title>
-		world v221206 x joserpagil@gmail.
+		world v221207 x joserpagil@gmail.
 	</title>
 
 </head>
@@ -68,6 +68,33 @@
 			let   renderer                    = null
 			const data_point_threshold        = .75 
 			
+			let   marker_modes                 = {
+				hidden: 0,
+				raining: 1,
+				normal: 2,
+				mode: 0,
+			}
+			let   rain                         = {
+				start: 0,
+				origin: null,
+				delay: 1 * 1000,
+				duration: 3 * 1000,
+				curvature: 2,
+				direction: { x: 0, y: 1, z: 1 },
+				distance: globe_radius * 3,
+				control_point: new THREE.Vector3(0, 0, 0)
+			}
+			
+			const Quadratic_bezier_at          = args => {
+				let t = args.t
+				let one_minus_t = 1 - t
+				let one_minus_t_2 = one_minus_t * one_minus_t
+
+				return new THREE.Vector3(
+					one_minus_t_2 * args.p0.x + 2 * one_minus_t * t * args.c.x + t * t * args.p1.x,
+					one_minus_t_2 * args.p0.y + 2 * one_minus_t * t * args.c.y + t * t * args.p1.y,
+					one_minus_t_2 * args.p0.z + 2 * one_minus_t * t * args.c.z + t * t * args.p1.z)
+			}			
 			const Lat_lon_to_cartesian         = args => {
 			/*
 				const phi   = ( 90 - args . lat ) * Deg2Rad
@@ -95,7 +122,6 @@
 					  }
 					  
 			}
-
 			class Lat_lon                {
 				constructor ( args ) {
 					this . lat = 0
@@ -108,10 +134,48 @@
 				}
 			}
 			class Marker extends Lat_lon {
+				static Instances   = []
 				static Marker_size = .1
+				
+				static Animate_markers              = args => {
+					let tile_vector        = new THREE . Vector3  ()
+					let tile_camera_vector = new THREE . Vector3  ()
+					let dummy              = new THREE . Object3D ()
+					let mat4               = new THREE . Matrix4  ()
+					let nt                 = 0
+					let rain_time_elapsed  = new Date() . getTime() - rain . start
 
+					for ( let marker of Marker . Instances ) { 
+						const cartesian = Lat_lon_to_cartesian ( { lat : marker . lat , lon : marker . lon } )
+						tile_vector . set ( cartesian . x , cartesian . y , cartesian . z )
+						tile_camera_vector . subVectors ( camera . position, tile_vector )
+						//let color = front_side_color
+						//let color = new THREE . Color ( 0xffffff )
+						let scale = 1
+						if ( tile_vector . dot ( tile_camera_vector ) < 0 ) {
+							//color = back_side_color
+							//color = new THREE . Color ( 0xffffff )
+							//scale = states . backfacing_point_scale
+						}
+					
+						if ( marker_modes . raining == marker_modes . mode ) {
+							let t = rain_time_elapsed / marker . t
+							if ( t > 1  ) t = 1
+							if ( t != 1 ) nt++
+							rain . control_point . copy           ( tile_vector )
+							rain . control_point . multiplyScalar ( rain . curvature )
+							let position = Quadratic_bezier_at    ( { t : t , c : rain . control_point , p0 : rain . origin , p1 : tile_vector } )
+							marker . mesh . position . copy ( position )
+						}
+					}
+					if ( marker_modes . raining == marker_modes . mode )
+						if ( nt == 0 ) marker_modes . mode = marker_modes . normal
+				}
+				
 				constructor ( args ) {
 					super ( args )
+					
+					this . t = Math . random () * ( rain . duration - 1000 ) + 1000
 					
 					this . mesh = new THREE . Mesh ( 
 						new THREE . PlaneGeometry ( Marker . Marker_size , Marker . Marker_size ) , 
@@ -123,6 +187,8 @@
 					const cartesian = Lat_lon_to_cartesian ( { lat : this . lat , lon : this .lon } )
 					this . mesh . lookAt         ( cartesian . x        , cartesian . y      , cartesian . z ) 
 					this . mesh . position . set ( cartesian . x        , cartesian . y      , cartesian . z )
+					
+					Marker . Instances . push ( this )
 				}
 			}
 			class Evento                 {
@@ -219,6 +285,14 @@
 					//spinner_mesh.position.set(cartesian.x, cartesian.y, cartesian.z)
 					//spinner_mesh.rotation.set(- this.lat * Deg2Rad, this.lon * Deg2Rad, 0, 'YXZ')
 				}
+			}
+			const Rain                         = args => {
+				rain . origin                   = new THREE . Vector3 ( rain . direction . x, rain . direction . y , rain . direction . z )
+				rain . origin . applyQuaternion                       ( camera . quaternion ) . normalize ()
+				rain . origin . multiplyScalar                        ( rain . distance )
+
+				marker_modes  .mode = marker_modes . raining
+				rain.start          = new Date() . getTime ()
 			}
 			
 			const create_scene              = async args => {
@@ -371,6 +445,7 @@
 						const lat = country.latlng[0]
 						const lng = country.latlng[1]
 						const zScale = 0.8 * scale
+						/*
 
 					  const box = new THREE.Mesh(
 					  new THREE.BoxGeometry(
@@ -414,15 +489,13 @@
 
 					  box.country = country.name //change this later
 					  box.population = new Intl. NumberFormat().format(country.population)//change this later
-
-						/*
+*/
 					  const marker = new Marker ( { 
 						description : country.name ,
 						lat ,     //         : latitude , 
 						lon : lng //         : longitude ,
 					  } )
-					  scene . add ( marker . mesh )					  
-					  */
+					  //scene . add ( marker . mesh )					  
 					  
 					  new Evento ( {
 						creation ,
@@ -624,68 +697,65 @@
 					portal = new Portal( {radius: 3, lat: 25, lon: -40} )
 					scene.add(portal)
 
-					function animate() {
-					  portal.animate()
-					  requestAnimationFrame(animate)
-					  renderer.render(scene, camera)
-					  //group.rotation.y += 0.001
-					  clouds.rotation.y -= 0.0001
-					  controls.update()
+					function animate () {
+						portal.animate()
+						renderer.render(scene, camera)
+						//group.rotation.y += 0.001
+						clouds.rotation.y -= 0.0001
+						controls.update()
 
 
-					  // update the picking ray with the camera and pointer position
-					  raycaster.setFromCamera(mouse, camera);
+						//group.children.forEach((mesh) => {
+						//mesh.material.opacity = 0.4
+						//})
 
-					  // calculate objects intersecting the picking ray
-					  const intersects = raycaster.intersectObjects(group.
-						children.filter((mesh) => {
-						  return mesh.geometry.type === 'BoxGeometry'
-						})
-					  )
+						if ( marker_modes . mode  != marker_modes . hidden ) {
+							for ( const marker of Marker . Instances ) scene . add ( marker . mesh )
+						}
 
-					  group.children.forEach((mesh) => {
-						mesh.material.opacity = 0.4
-					  })
-/*
-					  gsap.set(popUpEl, {
-						display: 'none'
-					  })
-*/
-					  for ( let i = 0; i < intersects.length; i ++ ) {
-						const box = intersects[i].object
-						box.material.opacity = 1
-/*
-						gsap.set(popUpEl, {
-						display: 'block'
+						renderer.render(scene, camera);
 
-					  })
-*/
-//						populationEl.innerHTML = box.country //change
-//						populationValueEl.innerHTML = box.population //change
-					}
+						if ( marker_modes . mode  != marker_modes . hidden ) {
+							for ( const marker of Marker . Instances ) scene . remove ( marker . mesh )
+						}
 
-					  renderer.render(scene, camera);
-
+						requestAnimationFrame(animate)
 					}
 					animate()
 					
+					Rain ()
+					
 					setInterval ( () => {
-						let candidates = []
-						let v_camera = new THREE.Vector3()
-						for ( const eve of Evento . Eventos ) {
-							v_camera.subVectors(camera.position, eve.mesh.position)
-							v_camera.normalize()
-							let v = eve.mesh.position.clone()
-							v.normalize()
-							let dot = v.dot(v_camera)
-							if (dot >= data_point_threshold)
-								candidates.push(eve)
-						}
-						if (candidates.length > 0) {
-							let e = candidates[Math.floor(Math.random() * candidates.length)]
-							e.show()
+						Marker . Animate_markers ()
+						
+						if (marker_modes . mode == marker_modes.normal) {
+							if (Evento . Showed != null) {
+								if (new Date().getTime() - Evento . Showed.curve_start > 9000)
+									Evento . Showed.hide()
+							} else {
+								if (new Date().getTime() - Evento . Showed_last > 2000) {
+									let candidates = []
+									let v_camera = new THREE.Vector3()
+									for ( const eve of Evento . Eventos ) {
+										v_camera.subVectors(camera.position, eve.mesh.position)
+										v_camera.normalize()
+										let v = eve.mesh.position.clone()
+										v.normalize()
+										let dot = v.dot(v_camera)
+										if (dot >= data_point_threshold)
+											candidates.push(eve)
+									}
+									if (candidates.length > 0) {
+										let e = candidates[Math.floor(Math.random() * candidates.length)]
+										e.show()
+									}					
+								}
+							}
+						} else {
+							Evento . Showed_last = new Date () . getTime ()
 						}					
 					} , 1000 / 30 )
+					
 				}
 
 				Init_ThreeJS ()
