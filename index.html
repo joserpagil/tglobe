@@ -78,7 +78,7 @@
 				start: 0,
 				origin: null,
 				delay: 1 * 1000,
-				duration: 3 * 1000,
+				duration: 5 * 1000,
 				curvature: 2,
 				direction: { x: 0, y: 1, z: 1 },
 				distance: globe_radius * 3,
@@ -120,7 +120,6 @@
 						y: globe_radius * Math.sin(latitude) ,
 						z: globe_radius * Math.cos(latitude) * Math.cos(longitude)
 					  }
-					  
 			}
 			class Lat_lon                {
 				constructor ( args ) {
@@ -139,24 +138,12 @@
 				
 				static Animate_markers              = args => {
 					let tile_vector        = new THREE . Vector3  ()
-					let tile_camera_vector = new THREE . Vector3  ()
-					let dummy              = new THREE . Object3D ()
-					let mat4               = new THREE . Matrix4  ()
 					let nt                 = 0
-					let rain_time_elapsed  = new Date() . getTime() - rain . start
+					let rain_time_elapsed  = new Date() . getTime () - rain . start
 
 					for ( let marker of Marker . Instances ) { 
 						const cartesian = Lat_lon_to_cartesian ( { lat : marker . lat , lon : marker . lon } )
 						tile_vector . set ( cartesian . x , cartesian . y , cartesian . z )
-						tile_camera_vector . subVectors ( camera . position, tile_vector )
-						//let color = front_side_color
-						//let color = new THREE . Color ( 0xffffff )
-						let scale = 1
-						if ( tile_vector . dot ( tile_camera_vector ) < 0 ) {
-							//color = back_side_color
-							//color = new THREE . Color ( 0xffffff )
-							//scale = states . backfacing_point_scale
-						}
 					
 						if ( marker_modes . raining == marker_modes . mode ) {
 							let t = rain_time_elapsed / marker . t
@@ -169,7 +156,8 @@
 						}
 					}
 					if ( marker_modes . raining == marker_modes . mode )
-						if ( nt == 0 ) marker_modes . mode = marker_modes . normal
+						if ( nt == 0 ) 
+							marker_modes . mode = marker_modes . normal
 				}
 				
 				constructor ( args ) {
@@ -291,8 +279,8 @@
 				rain . origin . applyQuaternion                       ( camera . quaternion ) . normalize ()
 				rain . origin . multiplyScalar                        ( rain . distance )
 
-				marker_modes  .mode = marker_modes . raining
-				rain.start          = new Date() . getTime ()
+				marker_modes  . mode            = marker_modes . raining
+				rain          . start           = new Date() . getTime ()
 			}
 			
 			const create_scene              = async args => {
@@ -507,6 +495,9 @@
 					  } )
 					  creation ++
 					  } )
+					  
+				Rain ()
+					  
 					}
 					
 					fetch('./countries.json')
@@ -697,6 +688,7 @@
 					portal = new Portal( {radius: 3, lat: 25, lon: -40} )
 					scene.add(portal)
 
+
 					function animate () {
 						portal.animate()
 						renderer.render(scene, camera)
@@ -709,23 +701,6 @@
 						//mesh.material.opacity = 0.4
 						//})
 
-						if ( marker_modes . mode  != marker_modes . hidden ) {
-							for ( const marker of Marker . Instances ) scene . add ( marker . mesh )
-						}
-
-						renderer.render(scene, camera);
-
-						if ( marker_modes . mode  != marker_modes . hidden ) {
-							for ( const marker of Marker . Instances ) scene . remove ( marker . mesh )
-						}
-
-						requestAnimationFrame(animate)
-					}
-					animate()
-					
-					Rain ()
-					
-					setInterval ( () => {
 						Marker . Animate_markers ()
 						
 						if (marker_modes . mode == marker_modes.normal) {
@@ -754,8 +729,20 @@
 						} else {
 							Evento . Showed_last = new Date () . getTime ()
 						}					
-					} , 1000 / 30 )
-					
+
+						if ( marker_modes . mode  != marker_modes . hidden ) {
+							for ( const marker of Marker . Instances ) scene . add ( marker . mesh )
+						}
+
+						renderer.render(scene, camera);
+
+						if ( marker_modes . mode  != marker_modes . hidden ) {
+							for ( const marker of Marker . Instances ) scene . remove ( marker . mesh )
+						}
+
+						requestAnimationFrame(animate)
+					}
+					animate()
 				}
 
 				Init_ThreeJS ()
