@@ -257,16 +257,17 @@
 			let   canvas
 			let   context
 			
-			const width  = props . width
-			const height = props . height
+			const width                        = props . width
+			const height                       = props . height
 			
-			const globe_radius                = 5
-			const Deg2Rad                     = Math.PI / 180
-			const Rad2Deg                     = 180 / Math.PI
-			let   scene                       = null
-			let   camera                      = null
-			let   renderer                    = null
-			const data_point_threshold        = .75 
+			const globe_radius                 = 5
+			const Deg2Rad                      = Math.PI / 180
+			const Rad2Deg                      = 180 / Math.PI
+			let   scene                        = null
+			let   camera                       = null
+			let   renderer                     = null
+			let   raycaster                    = null
+			const data_point_threshold         = .75 
 			let   spinner_mesh
 			let   spinner_mesh_frame_index     = 0
 			let   spinner_mesh_tts             = 2
@@ -292,6 +293,21 @@
 				distance: globe_radius * 3,
 				control_point: new THREE.Vector3(0, 0, 0)
 			}
+			const Pointers                     = {
+				position      : new THREE . Vector2 () ,
+				down_position : new THREE . Vector2 () ,
+				old_position  : new THREE . Vector2 () ,
+				delta         : new THREE . Vector2 () ,
+				wil_delta     : 0                      ,
+				button        : - 1                    ,
+				left_button   : 0                      ,
+				middle_button : 1                      ,
+				right_button  : 2                      ,
+				target        : null                   ,
+			}
+			
+			let   mouse = new THREE . Vector2 ()
+			let   maximum_selection_distance   = 300
 			
 			const Quadratic_bezier_at          = args => {
 				let t = args.t
@@ -343,6 +359,57 @@
 
 				return new THREE.Vector2(vector.x, vector.y)
 			}
+			const Mouse_over_globe             = args => {
+				let de = renderer.domElement
+				let ol = renderer.domElement.offsetLeft
+				let ot = renderer.domElement.offsetTop
+				while (de.parentElement != null) {
+					de = de.parentElement
+					ol += de.offsetLeft
+					ot += de.offsetTop
+				}
+
+				mouse.x = ((Pointers.position.x - ol) / renderer.domElement.clientWidth) * 2 - 1;
+				mouse.y = - ((Pointers.position.y - ot) / renderer.domElement.clientHeight) * 2 + 1;
+				raycaster.setFromCamera(mouse, camera)
+				let intersection_objects = raycaster.intersectObject( sphere , true)
+				return intersection_objects.length > 0
+			}
+			const Evento_at                    = args => {
+				let result = null
+				let de = renderer.domElement
+				let ol = renderer.domElement.offsetLeft
+				let ot = renderer.domElement.offsetTop
+				while (de.parentElement != null) {
+					de = de.parentElement
+					ol += de.offsetLeft
+					ot += de.offsetTop
+				}
+
+				mouse.x = ((Pointers.position.x - ol) / renderer.domElement.clientWidth) * 2 - 1;
+				mouse.y = - ((Pointers.position.y - ot) / renderer.domElement.clientHeight) * 2 + 1;
+				// mouse.x = (Pointers.position.x / width) * 2 - 1
+				// mouse.y = (- Pointers.position.y / height) * 2 + 1
+				raycaster.setFromCamera(mouse, camera)
+				let intersection_objects = raycaster.intersectObject(sphere, true)
+				if (intersection_objects.length > 0) {
+					let intersection = intersection_objects[0]
+
+					let min_distance_squared = 1000 * 1000
+					let min_evento = null
+					for ( const evento of Evento . Eventos ) {
+						let distance_squared = intersection.point.distanceToSquared(evento.mesh.position)
+						if (distance_squared < min_distance_squared) {
+							min_distance_squared = distance_squared
+							min_evento = evento
+						}
+					}
+					if (min_evento != null && min_distance_squared < (maximum_selection_distance * maximum_selection_distance))
+						result = min_evento
+				}
+				return result
+			}
+
 			class Lat_lon                                {
 				constructor ( args ) {
 					this . lat = 0
@@ -356,7 +423,7 @@
 			}
 			class Marker extends Lat_lon                 {
 				static Instances   = []
-				static Marker_size = .1
+				static Marker_size = .05
 				
 				static Animate_markers              = args => {
 					let tile_vector        = new THREE . Vector3  ()
@@ -644,7 +711,6 @@
 				})
 			}
 
-
 			const create_scene                 = async args => {
 				const Init_ThreeJS   = args => {
 					canvas                                = document . createElement ( 'canvas' )
@@ -704,7 +770,9 @@
 					
 					renderer.setSize( width , height )//canvasContainer.offsetWidth, canvasContainer.offsetHeight)
 					//renderer.setPixelRatio(window.devicePixelRatio)
-					canvasContainer . appendChild ( renderer . domElement )					
+					canvasContainer . appendChild ( renderer . domElement )		
+
+					raycaster = new THREE . Raycaster ()
 
 					const controls = new THREE.OrbitControls(camera, canvas ) //renderer.domElement);
 					controls.enableDamping = true;
@@ -896,29 +964,10 @@
 					  yPrev: undefined
 					}
 
-					const raycaster = new THREE.Raycaster();
+					//const raycaster = new THREE.Raycaster();
 					const popUpEl = document.querySelector('#popUpEl')
 					const populationEl = document.querySelector('#populationEl') //change
 					const populationValueEl = document.querySelector('#populationValueEl') //change
-
-					canvasContainer.addEventListener('mousedown', ({clientX, clientY}) => {
-					  mouse.down = true
-					  mouse.xPrev = clientX
-					  mouse.yPrev = clientY
-					})
-
-					addEventListener('mousemove', (event) => {
-					  mouse.x = (event.clientX / innerWidth)
-						* 2 - 1
-					  mouse.y = -(event.clientY / innerHeight)
-						* 2 + 1
-					/*	
-					gsap.set(popUpEl, {
-					  x: event.clientX,
-					  y: event.clientY
-					})
-*/
-					})
 
 					canvasContainer.addEventListener("resize", onWindowResize, false);
 
@@ -930,37 +979,6 @@
 					}
 
 					//mobile resonsiveness
-					addEventListener('touchstart', (event) => {
-					  event.clientX = event.touches[0].clientX
-					  event.clientY = event.touches[0].clientY
-
-						const doesIntersect = raycaster.intersectObject(sphere)
-
-						if (doesIntersect.length > 0) mouse.down = true
-
-						if (mouse.down) {
-					  
-						  const offset = canvasContainer.getBoundingClientRect().top
-
-						  mouse.x = (event.clientX / innerWidth)
-							* 2 - 1
-						  mouse.y = -((event.clientY - offset)/ innerHeight)
-							* 2 + 1
-/*
-						  gsap.set(popUpEl, {
-							x: event.clientX,
-							y: event.clientY
-						  })
-*/
-						}
-					  }, 
-					  { passive: false }
-					)
-
-					addEventListener('touchend', (event) => {
-					  mouse.down = false
-					})
-
 					//longitude and latitude to cartisan for portal
 					function Lat_lon_to_cartesian(args){
 					  const phi = (90 - args.lat ) * Math.PI / 180
@@ -1072,7 +1090,9 @@
 						renderer.render(scene, camera)
 						//group.rotation.y += 0.001
 						clouds.rotation.y -= 0.0001
-						controls.update()
+						
+						
+						//controls.update()
 
 
 						//group.children.forEach((mesh) => {
@@ -1081,6 +1101,20 @@
 
 						Marker . Animate_markers ()
 						Animate_eventos ()
+						
+						if ( Mouse_over_globe () ) {
+							//orbitControls . enableRotate = true
+
+							if (Evento_at() != null)         document.body.style.cursor = 'pointer'
+							else {
+								if ( -1 == Pointers.button ) document.body.style.cursor = 'grab'
+							  else                           document.body.style.cursor = 'grabbing'
+							}
+						} else {
+							//orbitControls . enableRotate = false
+							document.body.style.cursor = 'default'
+						}
+						
 						
 						
 						if (marker_modes . mode == marker_modes.normal) {
@@ -1122,6 +1156,104 @@
 
 						requestAnimationFrame(animate)
 					}
+
+					{ // pointers
+					container_ref.current . addEventListener ( 'pointerdown' , function ( event ) {
+						if (event.type === "touchstart") Pointers.position.set(event.touches[0].clientX, event.touches[0].clientY)
+						else Pointers.position.set(event.x, event.y)
+
+						Pointers.button = event.button
+
+						Pointers.target = event.target
+
+						Pointers.delta.set(0, 0)
+					})
+					container_ref.current . addEventListener ( 'pointermove' , function ( event ) {
+						if (event.type === "touchstart") Pointers.position.set(event.touches[0].clientX, event.touches[0].clientY)
+						else Pointers.position.set(event.x, event.y)
+
+						//Pointers.button = event.button
+
+						Pointers.target = event.target
+
+						Pointers.delta.set(0, 0)
+					})
+					container_ref.current . addEventListener ( 'pointerup'   , function ( event ) {
+						if (event.type === "touchstart") Pointers.position.set(event.touches[0].clientX, event.touches[0].clientY)
+						else Pointers.position.set(event.x, event.y)
+
+						Pointers.button = event.button
+
+						Pointers.target = event.target
+
+						Pointers.delta.set(0, 0)
+
+					//if ( Pointers . target      != renderer . domElement ) return
+
+						if (Pointers.left_button != Pointers.button) return
+
+						if (Evento . showed != null)
+							Evento . showed.hide()
+
+						Evento . showed = Evento_at ()
+						if ( Evento . showed != null )
+							Evento . showed . show ()
+
+						Pointers.button = - 1
+					})
+					}
+
+					/*
+					addEventListener('touchstart', (event) => {
+					  event.clientX = event.touches[0].clientX
+					  event.clientY = event.touches[0].clientY
+
+						const doesIntersect = raycaster.intersectObject(sphere)
+
+						if (doesIntersect.length > 0) mouse.down = true
+
+						if (mouse.down) {
+					  
+						  const offset = canvasContainer.getBoundingClientRect().top
+
+						  mouse.x = (event.clientX / innerWidth)
+							* 2 - 1
+						  mouse.y = -((event.clientY - offset)/ innerHeight)
+							* 2 + 1
+
+						  gsap.set(popUpEl, {
+							x: event.clientX,
+							y: event.clientY
+						  })
+
+						}
+					  }, 
+					  { passive: false }
+					)
+
+					addEventListener('touchend', (event) => {
+					  mouse.down = false
+					})
+
+					canvasContainer.addEventListener('mousedown', ({clientX, clientY}) => {
+					  mouse.down = true
+					  mouse.xPrev = clientX
+					  mouse.yPrev = clientY
+					})
+					
+					addEventListener('mousemove', (event) => {
+					  mouse.x = (event.clientX / innerWidth)
+						* 2 - 1
+					  mouse.y = -(event.clientY / innerHeight)
+						* 2 + 1
+				
+					gsap.set(popUpEl, {
+					  x: event.clientX,
+					  y: event.clientY
+					})
+*/
+
+					
 					animate()
 				}
 
@@ -1130,7 +1262,6 @@
 					beacon_image = args.image
 					beacon_texture_frames = Image_to_texture_frames({ image: beacon_image })
 				} )
-				
 			}
 			const destroy_scene                = args => {
 				//cancelAnimationFrame ( frameId )
