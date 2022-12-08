@@ -13,7 +13,7 @@
 	<script src='./js/OrbitControls.js'></script>
 
 	<title>
-		world v221207 x joserpagil@gmail.
+		world v221208 x joserpagil@gmail.
 	</title>
 
 </head>
@@ -828,13 +828,27 @@
 					  })
 					)
 					scene.add(clouds)
-/*
+
 					// create atmosphere
 					const atmosphere = new THREE.Mesh(
 					  new THREE.SphereGeometry(globe_radius, 50, 50),
 					  new THREE.ShaderMaterial({
-						vertexShader: atmosphereVertexShader,
-						fragmentShader: atmosphereFragmentShader,
+						vertexShader: `
+							varying vec3 vertexNormal;
+
+							void main() {
+								vertexNormal = normalize(normalMatrix * normal);
+								gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+							}
+						`,
+						fragmentShader: `
+							varying vec3 vertexNormal;
+							void main() {
+								float intensity = pow(0.95 - dot(vertexNormal, vec3(0, 0, 1.0
+								)), 2.0);
+								gl_FragColor = vec4(0.3, 0.6, 1.0, 1.0) * intensity;
+							}
+						`,
 						blending: THREE.AdditiveBlending,
 						side: THREE.BackSide
 					  })
@@ -843,7 +857,7 @@
 					atmosphere.scale.set(1.1, 1.1, 1.1)
 
 					scene.add(atmosphere)
-*/
+
 					const group = new THREE.Group()
 					group.add(sphere)
 					scene.add(group)
