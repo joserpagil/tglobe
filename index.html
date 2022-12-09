@@ -13,7 +13,7 @@
 	<script src='./js/OrbitControls.js'></script>
 
 	<title>
-		world v221208 x joserpagil@gmail.
+		world v221209 x joserpagil@gmail.
 	</title>
 
 </head>
@@ -320,30 +320,13 @@
 					one_minus_t_2 * args.p0.z + 2 * one_minus_t * t * args.c.z + t * t * args.p1.z)
 			}			
 			const Lat_lon_to_cartesian         = args => {
-			/*
-				const phi   = ( 90 - args . lat ) * Deg2Rad
-				const theta = (    - args . lon ) * Deg2Rad
+				const latitude = (args . lat / 180) * Math.PI
+				const longitude = (args . lon / 180) * Math.PI
 				return {
-					x : globe_radius * Math . sin ( phi ) * Math . cos ( theta ) ,
-					y : globe_radius * Math . cos ( phi ) ,
-					z : globe_radius * Math . sin ( phi ) * Math . sin ( theta )
+					x: globe_radius * Math.cos(latitude) * Math.sin(longitude) ,
+					y: globe_radius * Math.sin(latitude) ,
+					z: globe_radius * Math.cos(latitude) * Math.cos(longitude)
 				}
-					function Lat_lon_to_cartesian(args){
-					  const phi = (90 - args.lat ) * Math.PI / 180
-					  const theta = (90 - args.lon ) * Math.PI / 180
-					  return {
-						x: globe_radius * Math.sin(phi) * Math.cos(theta),
-						y: globe_radius * Math.cos(phi),
-						z: globe_radius * Math.sin(phi) * Math.sin(theta)
-					  }
-					  */
-					  const latitude = (args . lat / 180) * Math.PI
-					  const longitude = (args . lon / 180) * Math.PI
-					  return {
-						x: globe_radius * Math.cos(latitude) * Math.sin(longitude) ,
-						y: globe_radius * Math.sin(latitude) ,
-						z: globe_radius * Math.cos(latitude) * Math.cos(longitude)
-					  }
 			}
 			const Ddd2dd                       = args => {
 				const vector = new THREE.Vector3()
@@ -504,7 +487,7 @@
 						if (this.html == '') {
 							this.html += '<div>'
 							//if ('card_flag' in args) this.html += '<div class="card_flag_img"><img src = "' + args.card_flag + '"/></div>'
-							if ('card_flag' in args) this.html += '<img src = "' + args.card_flag + '"/>'
+							//if ('card_flag' in args) this.html += '<img src = "' + args.card_flag + '"/>'
 							//this.html += '<div class="card_info_main">'
 							if ('card_title' in args) this.html += '<label>' + args.card_title + '</label>'
 							//if ('card_title' in args) this.html += '<h3>' + args.card_title + '</h3>'
@@ -554,6 +537,7 @@
 				}
 				show() {
 					Evento . Showed = this
+					Evento . Showed_last = new Date().getTime()
 
 					this.curve_start = new Date().getTime()
 					this.curve_factor = 0
@@ -718,33 +702,8 @@
 					canvas        . height                = height
 					canvas        . style . position      = 'absolute'			
 					context                               = canvas . getContext ( '2d' )
-					//context       . fillStyle             = '0x031928'
-					//context       . fillRect              ( 0 , 0 , canvas . width , canvas . height )
 					context . clearRect ( 0 , 0 , canvas . width , canvas . height )
 					container_ref . current . appendChild ( canvas )
-
-					/*
-					const canvas = document . createElement ( 'canvas' )
-					const context = canvas . getContext ( '2d' )
-					context . fillStyle = 'red'
-					context . fillRect ( 0 , 0 , canvas . width , canvas . height )
-					container_ref . current . appendChild ( canvas )
-					*/
-					
-					/*
-					import './style.css'
-					import * as THREE from 'three'
-					import gsap from 'gsap'
-					import countries from './countries.json'
-					import vertexShader from './src/shaders/vertex.glsl'
-					import fragmentShader from './src/shaders/fragment.glsl'
-					import atmosphereVertexShader from './src/shaders/atmosphereVertex.glsl'
-					import atmosphereFragmentShader from './src/shaders/atmosphereFragment.glsl'
-					import globe from './src/img/globe.jpeg?url'
-					import cloud from './src/img/earthCloud.png?url'
-					import smoke from './src/img/smoke.png?url'
-					import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
-					*/
 
 					let portal
 
@@ -994,7 +953,7 @@
 
 					//mobile resonsiveness
 					//longitude and latitude to cartisan for portal
-					function Lat_lon_to_cartesian(args){
+					function Lat_lon_to_cartesian0(args){
 					  const phi = (90 - args.lat ) * Math.PI / 180
 					  const theta = (90 - args.lon ) * Math.PI / 180
 					  return {
@@ -1130,7 +1089,7 @@
 						}
 						
 						
-						
+						/*
 						if (marker_modes . mode == marker_modes.normal) {
 							if (Evento . Showed != null) {
 								if (new Date().getTime() - Evento . Showed.curve_start > 9000)
@@ -1156,7 +1115,8 @@
 							}
 						} else {
 							Evento . Showed_last = new Date () . getTime ()
-						}					
+						}
+						*/
 
 						if ( marker_modes . mode  != marker_modes . hidden ) {
 							for ( const marker of Marker . Instances ) scene . add ( marker . mesh )
@@ -1272,10 +1232,10 @@
 				}
 
 				Init_ThreeJS ()
-				Load_image  ( { image_source: Beacon_image_strip_source }).then(args => {
+				/*Load_image  ( { image_source: Beacon_image_strip_source }).then(args => {
 					beacon_image = args.image
 					beacon_texture_frames = Image_to_texture_frames({ image: beacon_image })
-				} )
+				} )*/
 			}
 			const destroy_scene                = args => {
 				//cancelAnimationFrame ( frameId )
@@ -1324,3 +1284,4 @@
 </body>
 
 </html>
+
